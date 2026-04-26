@@ -1,0 +1,59 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'base-style/base.css' %}?v=6">
+    <title>Main</title>
+</head>
+<body>
+    <div id="container">
+        <h1>سلام</h1>
+        {% if not user %}
+            <button type="button" class="btn"
+                    onclick="location.href='{% url 'Users:login' %}'">
+                ورود
+            </button>
+        {% else %}
+            <p>
+                خوش آمدید {{ user.FirstName }}
+            </p>
+            <p>
+                {% if user.Role == "Student" or user.Role == "student" %}
+                    تو یه دانشجویی اینم شماره دانشجوییت
+                    {{ fk.StudentNumber }}
+                {% else %}
+                    تو یه استادی
+                {% endif %}
+
+            </p>
+
+            <br>
+            <hr>
+
+            <h2>کلاس های شما</h2>
+
+            {% if courses %}
+                <ul>
+                    {% for course in courses %}
+                    <li>
+                        <a href="{% url 'Courses:course_page' course.pk %}">{{ course.CourseName }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>کلاسی برای شما تعریف نشده است</p>
+            {% endif %}
+
+            <button type="button" class="btn"
+                    onclick="location.href='{% url 'Users:logout' %}'">
+                خروج
+            </button>
+        
+        {% endif %}
+    </div>
+
+</body>
+</html>

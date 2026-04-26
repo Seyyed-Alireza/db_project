@@ -1,0 +1,388 @@
+CREATE TABLE IF NOT EXISTS `Users` (
+    `UserID`       INT AUTO_INCREMENT PRIMARY KEY,
+    `Username`     VARCHAR(150) NOT NULL UNIQUE,
+    `FirstName`    VARCHAR(100) NOT NULL,
+    `LastName`     VARCHAR(100) NOT NULL,
+    `PasswordHash` VARCHAR(255) NOT NULL,
+    `Role`         VARCHAR(50)  NOT NULL,
+    `Email`        VARCHAR(254),
+    `PhoneNumber`  VARCHAR(15),
+    `CreatedAt`    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `IsLoggedIn`   BOOLEAN NOT NULL DEFAULT FALSE
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `Departments` (
+    `DepartmentID`   INT AUTO_INCREMENT PRIMARY KEY,
+    `DepartmentName` VARCHAR(100) NOT NULL,
+    `Location`       VARCHAR(200),
+    `Phone`          VARCHAR(20)
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `EduStaffs` (
+    `UserKey`       INT PRIMARY KEY,
+    `DepartmentKey` INT,
+
+    CONSTRAINT `fk_edustaff_user`
+        FOREIGN KEY (`UserKey`) 
+        REFERENCES `Users` (`UserID`) 
+        ON DELETE CASCADE,
+
+    CONSTRAINT `fk_edustaff_department`
+        FOREIGN KEY (`DepartmentKey`)
+        REFERENCES `Departments` (`DepartmentID`)
+        ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `Students` (
+    `StudentNumber`  VARCHAR(20) NOT NULL UNIQUE,
+    `UserKey`        INT PRIMARY KEY,
+    `DepartmentKey`  INT NULL,
+
+    CONSTRAINT `fk_student_user`
+        FOREIGN KEY (`UserKey`)
+        REFERENCES `Users` (`UserID`)
+        ON DELETE CASCADE,
+
+    CONSTRAINT `fk_student_department`
+        FOREIGN KEY (`DepartmentKey`)
+        REFERENCES `Departments` (`DepartmentID`)
+        ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `Teachers` (
+    `UserKey`       INT PRIMARY KEY,
+    `DepartmentKey` INT,
+
+    CONSTRAINT `fk_teacher_user`
+        FOREIGN KEY (`UserKey`) 
+        REFERENCES `Users` (`UserID`) 
+        ON DELETE CASCADE,
+
+    CONSTRAINT `fk_teacher_department`
+        FOREIGN KEY (`DepartmentKey`) 
+        REFERENCES `Departments` (`DepartmentID`) 
+        ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `Courses` (
+    `CourseID`            INT AUTO_INCREMENT PRIMARY KEY,
+    `CourseName`          VARCHAR(100) NOT NULL,
+    `CourseCode`          VARCHAR(20)  NOT NULL UNIQUE,
+    `Units`               SMALLINT UNSIGNED NOT NULL,
+    `CoursePasswordHash`  VARCHAR(255),
+    `DepartmentKey`       INT NOT NULL,
+    `TeacherKey`          INT,
+
+    CONSTRAINT `fk_course_department`
+        FOREIGN KEY (`DepartmentKey`)
+        REFERENCES `Departments` (`DepartmentID`)
+        ON DELETE CASCADE,
+
+    CONSTRAINT `fk_course_teacher`
+        FOREIGN KEY (`TeacherKey`) 
+        REFERENCES `Teachers` (`TeacherID`)
+        ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `Enrollments` (
+    `UserKey`      INT NOT NULL,
+    `CourseKey`    INT NOT NULL,
+    `EnrolledAt`   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `Grade`        VARCHAR(5),
+    `Status`       VARCHAR(20) NOT NULL DEFAULT 'active',
+
+    PRIMARY KEY (`UserKey`, `CourseKey`),
+
+    CONSTRAINT `fk_enrollment_student`
+        FOREIGN KEY (`UserKey`)
+        REFERENCES `Students` (`UserKey`)
+        ON DELETE CASCADE,
+
+    CONSTRAINT `fk_enrollment_course`
+        FOREIGN KEY (`CourseKey`)
+        REFERENCES `Courses` (`CourseID`)
+        ON DELETE CASCADE,
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `Exams` (
+    `ExamID`      INT AUTO_INCREMENT PRIMARY KEY,
+    `CourseKey`   INT NOT NULL,
+    `TeacherKey`  INT NOT NULL,
+    `Title`       VARCHAR(200) NOT NULL,
+    `StartTime`   TIMESTAMP NOT NULL,
+    `EndTime`     TIMESTAMP NOT NULL,
+    `Duration`    INT NULL,
+    `Description` TEXT,
+    `TotalScore`  DECIMAL(5,2) NULL DEFAULT 0,
+
+    CONSTRAINT `fk_exam_course`
+        FOREIGN KEY (`CourseKey`)
+        REFERENCES `Courses` (`CourseID`)
+        ON DELETE CASCADE,
+
+    CONSTRAINT `fk_exam_teacher`
+        FOREIGN KEY (`TeacherKey`)
+        REFERENCES `Teachers` (`TeacherID`)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `ExamResults` (
+    `ExamKey`     INT,
+    `StudentKey`  INT NOT NULL,
+    `TotalScore`  SMALLINT UNSIGNED,
+    `Status`      BOOLEAN NOT NULL DEFAULT TRUE,
+    `Grade`       VARCHAR(20) NOT NULL,
+    `CalculatedAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (`StudentKey`, `QuestionKey`),
+
+    CONSTRAINT `fk_examresult_exam`
+        FOREIGN KEY (`ExamKey`)
+        REFERENCES `Exams` (`ExamID`)
+        ON DELETE SET NULL,
+
+    CONSTRAINT `fk_examresult_student`
+        FOREIGN KEY (`StudentKey`)
+        REFERENCES `Students` (`UserKey`)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `LoginSessions` (
+    `SessionID`   INT AUTO_INCREMENT PRIMARY KEY,
+    `StudentKey`     INT NOT NULL,
+    `ExamKey`     INT,
+    `LoginTime`   TIMESTAMP NULL,
+    `LogoutTime`  TIMESTAMP NULL,
+    `IsActive`    BOOLEAN NOT NULL DEFAULT TRUE,
+
+    CONSTRAINT `fk_loginsession_student`
+        FOREIGN KEY (`StudentKey`)
+        REFERENCES `Students` (`UserKey`)
+        ON DELETE CASCADE,
+
+    CONSTRAINT `fk_loginsession_exam`
+        FOREIGN KEY (`ExamKey`)
+        REFERENCES `Exams` (`ExamID`)
+        ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `Questions` (
+    `QuestionID`    INT AUTO_INCREMENT PRIMARY KEY,
+    `ExamKey`       INT NOT NULL,
+    `QuestionType`  INT NOT NULL,
+    `QuestionText`  TEXT NOT NULL,
+    `QuestionImage` VARCHAR(200),
+    `Score`         DECIMAL(5,2) NOT NULL,
+
+    CONSTRAINT `fk_questios_exam`
+        FOREIGN KEY (`ExamKey`)
+        REFERENCES `Exams` (`ExamID`) 
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `QuestionOptions` (
+    `OptionID`    INT AUTO_INCREMENT PRIMARY KEY,
+    `QuestionKey` INT NOT NULL,
+    `OptionText`  TEXT,
+    `OptionLabel` VARCHAR(100) NOT NULL,
+    `IsCorrect`   BOOLEAN NOT NULL DEFAULT FALSE,
+
+    CONSTRAINT `fk_questionoption_question`
+        FOREIGN KEY (`QuestionKey`)
+        REFERENCES `Questions` (`QuestionID`)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `Answers` (
+    `AnswerText`        TEXT,
+    `IsCorrect`         BOOLEAN NULL DEFAULT FALSE,
+    `AnswerImage`       VARCHAR(200),
+    `IsGraded`          TINYINT NOT NULL DEFAULT 0,
+    `GivenScore`        DECIMAL(5,2),
+    `SubmittedAt`       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `QuestionKey`       INT NULL,
+    `StudentKey`           INT NOT NULL,
+    `SelectedOptionKey` INT NULL,
+
+    PRIMARY KEY (`StudentKey`, `QuestionKey`),
+
+    CONSTRAINT `fk_answer_question`
+        FOREIGN KEY (`QuestionKey`)
+        REFERENCES `Questions` (`QuestionID`)
+        ON DELETE SET NULL,
+
+    CONSTRAINT `fk_answer_student`
+        FOREIGN KEY (`StudentKey`)
+        REFERENCES `Students` (`UserKey`)
+        ON DELETE CASCADE,
+
+    CONSTRAINT `fk_answer_option`
+        FOREIGN KEY (`SelectedOptionKey`)
+        REFERENCES `QuestionOptions` (`OptionID`)
+        ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `QuestionViewLogs` (
+    `SessionKey`     INT,
+    `QuestionKey`    INT,
+    `ViewStartTime`  TIMESTAMP NULL,
+    `ViewEndTime`    TIMESTAMP NULL,
+    `Duration`       INT NULL,
+
+    PRIMARY KEY (`SessionKey`, `QuestionKey`),
+
+    CONSTRAINT `fk_questionviewlog_session`
+        FOREIGN KEY (`SessionKey`)
+        REFERENCES `LoginSessions` (`SessionID`)
+        ON DELETE NO ACTION,
+
+    CONSTRAINT `fk_questionviewlog_question`
+        FOREIGN KEY (`QuestionKey`)
+        REFERENCES `Questions` (`QuestionID`)
+        ON DELETE NO ACTION
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `ResolutionLogs` (
+    `LogID`        INT AUTO_INCREMENT PRIMARY KEY,
+    `SessionKey`   INT,
+    `ScreenWidth`  SMALLINT UNSIGNED NULL,
+    `ScreenHeight` SMALLINT UNSIGNED NULL,
+    `WindowWidth`  SMALLINT UNSIGNED NULL,
+    `WindowHeight` SMALLINT UNSIGNED NULL,
+    `ChangeTime`   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `fk_resolutionlog_session`
+        FOREIGN KEY (`SessionKey`)
+        REFERENCES `LoginSessions` (`SessionID`)
+        ON DELETE NO ACTION
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `IPAddressLogs` (
+    `LogID`      INT AUTO_INCREMENT PRIMARY KEY,
+    `SessionKey` INT,
+    `IPAddress`  VARCHAR(45) NULL,
+    `LogTime`    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `Location`   VARCHAR(200) NULL,
+
+    CONSTRAINT `fk_ipaddresslog_session`
+        FOREIGN KEY (`SessionKey`)
+        REFERENCES `LoginSessions` (`SessionID`)
+        ON DELETE NO ACTION
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `FraudFlags` (
+    `FlagID`      INT AUTO_INCREMENT PRIMARY KEY,
+    `SessionKey`  INT,
+    `QuestionKey` INT,
+    `Reason`      TEXT,
+    `RiskScore`   SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    `Severity`    VARCHAR(100) NOT NULL,
+    `FlagType`    TEXT,
+    `Status`      VARCHAR(100) NOT NULL,
+    `GeneratedAt` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT `fk_fraudflag_session`
+        FOREIGN KEY (`SessionKey`)
+        REFERENCES `LoginSessions` (`SessionID`)
+        ON DELETE NO ACTION,
+
+    CONSTRAINT `fk_fraudflag_question`
+        FOREIGN KEY (`QuestionKey`)
+        REFERENCES `Questions` (`QuestionID`)
+        ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `BehavioralMetrics` (
+    `SessionKey`      INT,
+    `QuestionKey`     INT,
+    `TotalTimeSpent`  INT NOT NULL DEFAULT 0,
+    `VisitCount`      SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+    `TabSwitchCount`  SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    `CopyPasteCount`  SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    `IdleTime`        INT NOT NULL DEFAULT 0,
+
+    PRIMARY KEY (`SessionKey`, `QuestionKey`),
+
+    CONSTRAINT `fk_behavioralmetric_session`
+        FOREIGN KEY (`SessionKey`)
+        REFERENCES `LoginSessions` (`SessionID`)
+        ON DELETE NO ACTION,
+
+    CONSTRAINT `fk_behavioralmetric_question`
+        FOREIGN KEY (`QuestionKey`)
+        REFERENCES `Questions` (`QuestionID`)
+        ON DELETE NO ACTION
+) ENGINE=InnoDB;
+
+
+
+
+CREATE TABLE IF NOT EXISTS `TabSwitchLogs` (
+    `LogID`       INT AUTO_INCREMENT PRIMARY KEY,
+    `SessionKey`  INT,
+    `QuestionKey` INT,
+    `EventTime`   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `EventType`   SMALLINT,
+    `Duration`    DECIMAL(65,2),
+
+    CONSTRAINT `fk_tabswitchlog_session`
+        FOREIGN KEY (`SessionKey`)
+        REFERENCES `LoginSessions` (`SessionID`)
+        ON DELETE NO ACTION,
+
+    CONSTRAINT `fk_tabswitchlog_question`
+        FOREIGN KEY (`QuestionKey`)
+        REFERENCES `Questions` (`QuestionID`)
+        ON DELETE NO ACTION
+) ENGINE=InnoDB;

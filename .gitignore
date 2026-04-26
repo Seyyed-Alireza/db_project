@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+venv/
+.env
+*.log
+local_settings.py
+settings.py
+media/answer_files/*
+!media/answer_files/.gitkeep
+media/question_images/*
+!media/question_images/.gitkeep

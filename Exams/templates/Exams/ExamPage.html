@@ -1,0 +1,33 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'base-style/base.css' %}?v=2">
+    <title>صفحه امتحان</title>
+</head>
+<body>
+    <div id="container">
+        <h1>صفحه امتحان</h1>
+        <h2><span style="color: red;">توجه:</span> رفرش کردن در این صفحه یا درحین آزمون باعث بیرون انداختن شما از آزمون می‌شود</h2>
+        <script>window.start_exam_button = false;</script>
+        <button type="button" class="btn" id="start-exam"
+            onclick="
+                window.start_exam_button = true;
+                goToQuestions({{ exam_id }}, {{ course_id }});
+                // location.href='{% url 'Exams:question_page' exam_id course_id %}';
+            "
+        > شروع آزمون
+        </button>
+        <p>متن برای کپی</p>
+        <input type="text" placeholder="for paste"><br>
+        <input type="text" value="for cut"><br>
+        
+    </div>
+
+    <script src="{% static 'base-js/base.js' %}" charset="utf-8"></script>
+    <script src="{% static 'Exams/ExamPage.js' %}?v=15" charset="utf-8"></script>
+</body>
+</html>

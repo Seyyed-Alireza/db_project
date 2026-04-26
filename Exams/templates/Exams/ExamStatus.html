@@ -1,0 +1,49 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'base-style/base.css' %}">
+    <link rel="stylesheet" href="{% static 'Exams/style/status.css' %}">
+    <title>وضعیت آزمون</title>
+</head>
+<body>
+    <header></header>
+    <div id="container">
+        <table id="status-table">
+            <caption class="table-caption">وضعیت شرکت در آزمون</caption>
+            <thead>
+                <tr class="table-row">
+                    <th class="table-head">
+                        شماره دانشجویی
+                    </th>
+                    <th class="table-head">
+                        تعداد دفعات شرکت
+                    </th>
+                    <th class="table-head">
+                        وضعیت تقلب
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for student in students %}
+                    <tr class="table-row">
+                        <td class="table-data">
+                            {{ student.StudentKey__StudentNumber }}
+                        </td>
+                        <td class="table-data">
+                            {{ student.count }}
+                        </td>
+                        <td class="table-data">
+                            نامعلوم
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'base-style/base.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'Exams/style/question.css' %}?v=2">
+    <title>صفحه سؤال</title>
+</head>
+<body>
+    <div id="container">
+        
+        
+        <button type="button" class="btn" id="end-exam">
+            اتمام آزمون
+        </button>
+        
+    </div>
+
+
+    <script src="{% static 'base-js/base.js' %}" charset="utf-8"></script>
+    <script src="{% static 'Exams/QuestionView.js' %}?v=15" charset="utf-8"></script>
+</body>
+</html>

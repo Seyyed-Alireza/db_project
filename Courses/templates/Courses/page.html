@@ -1,0 +1,128 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'base-style/base.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'Courses/style/Course.css' %}?v=3">
+    <title>صفحه کلاس</title>
+</head>
+<body>
+    <header>
+        <button type="button" class="btn"
+                onclick="location.href='{% url 'main:mainpage' %}'">
+            صفحه اصلی
+        </button>
+    </header>
+    <div id="container-center">
+        
+        <h1>کلاس {{ course.CourseName }}</h1>
+        {% if role == "teacher" %}
+            <button id="show-form-btn" type="button" class="btn">ایجاد آزمون جدید</button>
+        {% endif %}
+        <h2> امتحانات</h2>
+        <div class="exams" id="exams-container">
+            {% if exams_with_status %}
+                {% for exam, status, id in exams_with_status %}
+                    <div class="exam-bow-wrapper">
+                        <div class="exam-box" id="exam-box-{{ exam.pk }}">
+                            <!-- <a href="{% url 'Exams:exam_page' course.pk exam.pk %}">{{ exam.Title }}</a> -->
+                            <p>{{ exam.Title }}</p>
+                            {% if status == "inprogress" %}
+                                درحال برگزاری
+                            {% elif status == "ended" %}
+                                تمام شده
+                            {% elif status == "waiting" %}
+                                منتظر شروع
+                            {% else %}
+                                وضعیت نامعلوم
+                            {% endif %}
+                            <br>
+                            <div class="exam-options">
+                                <button type="button" class="btn" id="enter-exam-{{ exam.pk }}"
+                                    onclick="location.href='{% url 'Exams:exam_page' course.pk exam.pk %}'"
+                                >
+                                    ورود به آزمون
+                                </button>
+                                {% if role == "teacher" %}
+                                    <button type="button" class="btn"
+                                        onclick="location.href='{% url 'Exams:edit_exam' course.pk exam.pk %}'"
+                                    >
+                                        ویرایش آزمون
+                                    </button>
+                                    <button type="button" class="btn btn--secondary"
+                                        onclick="deleteExam({{ course.pk }}, {{ exam.pk }}, {{ exam.pk }})"
+                                    >
+                                        حذف آزمون
+                                    </button>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                امتحانی وجود ندارد
+            {% endif %}
+        </div>
+    </div>
+
+    <div id="form-container">
+        <form id="exam-form"  method="post" action="{% url 'Exams:create_exam' course.pk %}" novalidate autocomplete="off">
+            {% csrf_token %}
+            
+            <div class="form-field">
+                <label for="id_title">{{ form.title.label }}</label>
+                {{ form.title }}
+                <span class="error-span" id="title-error"></span>
+            </div>
+
+            <div class="form-field">
+                <label for="id_description">{{ form.description.label }}</label>
+                {{ form.description }}
+                <span class="error-span" id="description-error"></span>
+            </div>
+
+            <div class="form-field">
+                <label for="id_start_date">{{ form.start_date.label }}</label>
+                {{ form.start_date }}
+                <span class="error-span" id="start_date-error"></span>
+            </div>
+
+            <div class="form-field">
+                <label for="id_start_time">{{ form.start_time.label }}</label>
+                {{ form.start_time }}
+                <span class="error-span" id="start_time-error"></span>
+            </div>
+
+            <div class="form-field">
+                <label for="id_end_date">{{ form.end_date.label }}</label>
+                {{ form.end_date }}
+                <span class="error-span" id="end_date-error"></span>
+            </div>
+
+            <div class="form-field">
+                <label for="id_end_time">{{ form.end_time.label }}</label>
+                {{ form.end_time }}
+                <span class="error-span" id="end_time-error"></span>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" id="submit-btn" class="btn">ثبت آزمون</button>
+                <button type="button" id="cancel-btn" class="btn btn--secondary">انصراف</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        window.examsStatus = JSON.parse('{{ for_js|escapejs }}');
+        window.course_id = {{ course.pk }};
+    </script>
+    <script src="{% static 'base-js/base.js' %}" charset="utf-8"></script>
+    {% if role == "teacher" %}
+        <script src="{% static 'Courses/Course.js' %}" charset="utf-8"></script>
+    {% endif %}
+</body>
+</html>

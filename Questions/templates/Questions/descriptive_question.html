@@ -1,0 +1,64 @@
+{% load static %}
+
+<div class="question-container" data-question-id="{{ question.QuestionID }}" data-order="{{ question.Order }}">
+    <div class="question-header">
+        <span class="badge badge-success">✍️ سوال تشریحی</span>
+        <span class="question-number">سوال {{ question.order }}</span>
+        <span class="score">نمره: {{ question.score }}</span>
+    </div>
+    
+    <div class="question-body">
+        <div class="question-text">
+            {{ question.text|safe }}
+        </div>
+        <img src="{{ question.image }}" alt="تصویر سوال" id="question-image">
+    </div>
+    
+    <form id="answer-form" action="{% url 'Answers:save_answer' question.id %}" class="answer-form" data-question-type="descriptive" enctype="multipart/form-data" novalidate autocomplete="off">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            {{ form.answer_text.label_tag }}
+            {{ form.answer_text }}
+            {{ form.answer_text.errors }}
+        </div>
+        
+        {% if existing_file %}
+            <div class="existing-file">
+                📎 فایل قبلی: 
+                <!-- <a href="{{ existing_file.url }}" target="_blank">
+                    {{ existing_file.name }}
+                </a> -->
+                <small>{{ existing_file.name }}</small>
+                <small>(می‌توانید فایل جدید آپلود کنید)</small>
+            </div>
+        {% endif %}
+
+        <div class="form-group">
+            {{ form.answer_file.label_tag }}
+            {{ form.answer_file }}
+            <small>{{ form.answer_file.help_text }}</small>
+            {{ form.answer_file.errors }}
+        </div>
+        
+        <div class="form-actions">
+            {% if last_question %}
+                <button type="button" class="btn" id="pre-question">
+                    سوال قبلی
+                </button>
+            {% endif %}
+            <button type="button" class="btn" id="save-answer">
+                ذخیره پاسخ
+            </button>
+            
+            {% if last_question %}
+                <button type="button" class="btn" id="next-question">
+                    سوال بعدی
+                </button>
+            {% endif %}
+            <button type="button" class="btn" id="end-exam">
+                پایان آزمون
+            </button>
+        </div>
+    </form>
+</div>

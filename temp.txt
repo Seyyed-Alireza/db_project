@@ -1,0 +1,27 @@
+from django.db import models, connection, transaction
+
+class Question(models.Model):
+    
+    
+    class Meta:
+        managed = False
+        db_table = 'Questions'
+        ordering = ['Order']
+    
+    @classmethod
+    def rebalance_orders(cls, exam):
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                UPDATE Questions AS q
+                INNER JOIN (
+                    SELECT 
+                        QuestionID, 
+                        ROW_NUMBER() OVER (PARTITION BY ExamKey ORDER BY `Order`) AS new_order
+                    FROM Questions
+                    WHERE ExamKey = %s
+                ) AS ranked ON q.QuestionID = ranked.QuestionID
+                SET q.`Order` = ranked.new_order
+                WHERE q.ExamKey = %s
+            """, [exam.pk, exam.pk])
+            
+            return cursor.rowcount
