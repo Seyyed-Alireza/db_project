@@ -42,7 +42,7 @@
         </div>
         
         <div class="form-actions">
-            {% if last_question %}
+            {% if not first_question %}
                 <button type="button" class="btn" id="pre-question">
                     سوال قبلی
                 </button>
@@ -51,7 +51,7 @@
                 ذخیره پاسخ
             </button>
             
-            {% if last_question %}
+            {% if not last_question %}
                 <button type="button" class="btn" id="next-question">
                     سوال بعدی
                 </button>

@@ -145,26 +145,21 @@ async function saveAnswer() {
     }
 }
 
-async function getQuestion(order) {
-    const data_fetch = JSON.stringify({
-        order: order
-    })
-    const response = await fetch('/get-question/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: data_fetch
-    })
-
-    const data = await response.json();
+function updateQuestionForm(data) {
     if (data.success) {
         container = document.getElementById('container');
         container.innerHTML = data.html;
         const exit_button = document.getElementById('end-exam');
         if (exit_button) {
             exit_button.addEventListener('click', exitExam);
+        }
+        const nextQuestionBtn = document.getElementById('next-question');
+        if (nextQuestionBtn) {
+            nextQuestionBtn.addEventListener('click', nextQuestion);
+        }
+        const preQuestionBtn = document.getElementById('pre-question');
+        if (preQuestionBtn) {
+            preQuestionBtn.addEventListener('click', preQuestion);
         }
         const saveAnswerBtn = document.getElementById('save-answer');
         if (saveAnswerBtn) {
@@ -175,12 +170,79 @@ async function getQuestion(order) {
     }
 }
 
+async function getQuestion(order) {
+    const data_fetch = JSON.stringify({
+        order: order
+    })
+    disableActionBtns();
+    const response = await fetch('/get-question/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: data_fetch
+    })
+
+    const data = await response.json();
+    updateQuestionForm(data);
+    enableActionBtns();
+    // if (data.success) {
+    //     container = document.getElementById('container');
+    //     container.innerHTML = data.html;
+    //     const exit_button = document.getElementById('end-exam');
+    //     if (exit_button) {
+    //         exit_button.addEventListener('click', exitExam);
+    //     }
+    //     const saveAnswerBtn = document.getElementById('save-answer');
+    //     if (saveAnswerBtn) {
+    //         saveAnswerBtn.addEventListener('click', saveAnswer);
+    //     }
+    // } else {
+    //     console.log('failed')
+    // }
+}
+
+async function nextQuestion() {
+    disableActionBtns();
+    try {
+            const response = await fetch('/next-question/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+        })
+        const data = await response.json();
+        updateQuestionForm(data);
+    } catch (error) {
+        notification('خطا در ارتباط با سرور', 'error');
+    } finally {
+        enableActionBtns();
+    }
+}
+
+async function preQuestion() {
+    disableActionBtns();
+    try {
+        const response = await fetch('/pre-question/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+        })
+        const data = await response.json();
+        updateQuestionForm(data);
+    } catch (error) {
+        notification('خطا در ارتباط با سرور', 'error');
+    } finally {
+        enableActionBtns();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => getQuestion(1))
 document.addEventListener('DOMContentLoaded', sendResolution)
-
-
-
-
 
 function getCookie(name) {
     let cookieValue = null;
