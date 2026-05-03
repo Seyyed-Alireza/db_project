@@ -53,15 +53,16 @@ class Command(BaseCommand):
         FIRST_NAMES = ["مرضیه", "صالح", "حسین", "آرش", "فرزانه"]
         LAST_NAMES = ["داوودآبادی فراهانی", "اعتمادی", "رحمانی", "عبدی", "غیور باغبانی"]
         ROLES = ["teacher", "teacher", "student"]
-        DEPARTMENT_NAMES = ["کامپیوتر"]
-        COURSE_NAMES = ["برنامه سازی پیشرفته", "داده ساختار و الگوریتم", "هوش مصنوعی"]
+        DEPARTMENT_NAMES = ["کامپیوتر", "برق", "مکانیک", "معماری", "فیزیک"]
+        COURSE_NAMES = ["برنامه سازی پیشرفته", "داده ساختار و الگوریتم", "هوش مصنوعی", "مدار  منطقی", "ریاضیات گسسته", "فیزیک 1", "فیزیک 2", "جبر خطی"]
         EXAM_TITLES = ["پایان‌ترم", "میان‌ترم"]
         TOTAL_SCORES = [5, 8, 10, 20, 100]
 
-        COURSE_COUNT = 3
-        USER_COUNT = 8
-        TEACHER_LIMIT = 2
+        COURSE_COUNT = 12
+        USER_COUNT = 30
+        TEACHER_LIMIT = 10
         QUESTION_LIMIT = 3
+        DEPARTMENT_COUNT = 11
 
         users = []
         for i in range(USER_COUNT):
@@ -81,7 +82,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("Users created successfully"))
 
         departments = []
-        for i in range(1):
+        for i in range(DEPARTMENT_COUNT):
             departments.append(
                 Department.objects.create(
                     DepartmentName=random.choice(DEPARTMENT_NAMES),
