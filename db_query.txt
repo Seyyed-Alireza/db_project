@@ -262,23 +262,22 @@ CREATE TABLE IF NOT EXISTS `Answers` (
 
 
 CREATE TABLE IF NOT EXISTS `QuestionViewLogs` (
+    `ViewLogID`      INT AUTO_INCREMENT PRIMARY KEY,
     `SessionKey`     INT,
     `QuestionKey`    INT,
     `ViewStartTime`  TIMESTAMP NULL,
     `ViewEndTime`    TIMESTAMP NULL,
     `Duration`       INT NULL,
 
-    PRIMARY KEY (`SessionKey`, `QuestionKey`),
-
     CONSTRAINT `fk_questionviewlog_session`
         FOREIGN KEY (`SessionKey`)
         REFERENCES `LoginSessions` (`SessionID`)
-        ON DELETE NO ACTION,
+        ON DELETE CASCADE,
 
     CONSTRAINT `fk_questionviewlog_question`
         FOREIGN KEY (`QuestionKey`)
         REFERENCES `Questions` (`QuestionID`)
-        ON DELETE NO ACTION
+        ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 

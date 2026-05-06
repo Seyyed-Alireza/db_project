@@ -7,7 +7,10 @@ from Answers.forms import DescriptiveAnswerForm, MultipleChoiceAnswerForm
 from LoginSessions.models import LoginSession
 from Exams.models import Exam
 from Answers.models import Answer
+from QuestionViewLogs.models import QuestionViewLog
 from django.http import JsonResponse
+from main.views import get_time_now
+from django.db import connection
 import json
 import base64
 from main.views import timer
@@ -98,7 +101,17 @@ def get_question(request, q):
         'last_question': not Question.objects.filter(ExamKey_id=q.ExamKey_id, QuestionID__gt=q.pk).exists()
     }
 
-    return render_to_string(template_partial, context, request=request)
+    session_id = request.session.get('exam_session_id')
+    question_id = q.pk
+    start_time = get_time_now()
+
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            INSERT INTO QuestionViewLogs (SessionKey, QuestionKey, ViewStartTime)
+            VALUES (%s, %s, %s)
+        """, [session_id, question_id, start_time])
+
+        return render_to_string(template_partial, context, request=request)
 
 
 def custom_question(request):
@@ -114,7 +127,7 @@ def custom_question(request):
 
 @timer
 def next_question(request):
-    res, q = validate_for_question(request, request.session.get('question_order', None) + 1)
+    res, q = validate_for_question(request, request.session.get('question_order', 0) + 1)
     if not(res):
         return q
     html = get_question(request, q)
@@ -125,7 +138,7 @@ def next_question(request):
     })
 
 def pre_question(request):
-    res, q = validate_for_question(request, request.session.get('question_order', None) - 1)
+    res, q = validate_for_question(request, request.session.get('question_order', 1) - 1)
     if not(res):
         return q
     html = get_question(request, q)

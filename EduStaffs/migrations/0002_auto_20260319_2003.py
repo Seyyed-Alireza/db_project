@@ -22,11 +22,8 @@ def create_edustaffs_table(apps, schema_editor):
     elif vendor == 'mysql':
         sql = """
         CREATE TABLE IF NOT EXISTS `EduStaffs` (
-            `EduID`         INT AUTO_INCREMENT PRIMARY KEY,
-            `UserKey`       INT NOT NULL,
+            `UserKey`       INT PRIMARY KEY,
             `DepartmentKey` INT,
-
-            CONSTRAINT `uq_edustaff_user` UNIQUE (`UserKey`),
 
             CONSTRAINT `fk_edustaff_user`
                 FOREIGN KEY (`UserKey`) 
