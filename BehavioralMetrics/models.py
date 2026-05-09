@@ -7,7 +7,7 @@ class BehavioralMetric(models.Model):
 
     SessionKey = models.ForeignKey(
         LoginSession,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         blank=True,
         null=True,
         db_column="SessionKey",
@@ -16,7 +16,7 @@ class BehavioralMetric(models.Model):
 
     QuestionKey = models.ForeignKey(
         Question,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.CASCADE,
         blank=True,
         null=True,
         db_column="QuestionKey",
