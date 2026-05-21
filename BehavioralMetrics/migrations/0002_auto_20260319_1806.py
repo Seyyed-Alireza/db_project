@@ -27,8 +27,8 @@ def create_behavioralmetrics_table(apps, schema_editor):
     elif vendor == 'mysql':
         sql = """
         CREATE TABLE IF NOT EXISTS `BehavioralMetrics` (
-            `SessionKey`      INT,
-            `QuestionKey`     INT,
+            `SessionKey`      INT NOT NULL,
+            `QuestionKey`     INT NOT NULL,
             `TotalTimeSpent`  INT NOT NULL DEFAULT 0,
             `VisitCount`      SMALLINT UNSIGNED NOT NULL DEFAULT 1,
             `TabSwitchCount`  SMALLINT UNSIGNED NOT NULL DEFAULT 0,
@@ -40,12 +40,12 @@ def create_behavioralmetrics_table(apps, schema_editor):
             CONSTRAINT `fk_behavioralmetric_session`
                 FOREIGN KEY (`SessionKey`)
                 REFERENCES `LoginSessions` (`SessionID`)
-                ON DELETE NO ACTION,
+                ON DELETE CASCADE,
 
             CONSTRAINT `fk_behavioralmetric_question`
                 FOREIGN KEY (`QuestionKey`)
                 REFERENCES `Questions` (`QuestionID`)
-                ON DELETE NO ACTION
+                ON DELETE CASCADE
         ) ENGINE=InnoDB;
         """
     

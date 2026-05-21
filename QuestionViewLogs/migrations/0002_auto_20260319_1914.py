@@ -25,13 +25,12 @@ def create_questionviewlogs_table(apps, schema_editor):
     elif vendor == 'mysql':
         sql = """
         CREATE TABLE IF NOT EXISTS `QuestionViewLogs` (
+            `ViewLogID`      INT AUTO_INCREMENT PRIMARY KEY,
             `SessionKey`     INT,
             `QuestionKey`    INT,
             `ViewStartTime`  TIMESTAMP NULL,
             `ViewEndTime`    TIMESTAMP NULL,
             `Duration`       INT NULL,
-
-            PRIMARY KEY (`SessionKey`, `QuestionKey`),
 
             CONSTRAINT `fk_questionviewlog_session`
                 FOREIGN KEY (`SessionKey`)

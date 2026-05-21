@@ -49,24 +49,24 @@ class Question(models.Model):
         db_table = 'Questions'
         ordering = ['Order']
 
-    @classmethod
-    def rebalance_orders(cls, exam):
-        """
-        بازنشانی Order ها به ۱, ۲, ۳, ...
-        بهینه‌ترین روش برای MySQL 8.0+
-        """
-        with connection.cursor() as cursor:
-            cursor.execute("""
-                UPDATE Questions AS q
-                INNER JOIN (
-                    SELECT 
-                        QuestionID, 
-                        ROW_NUMBER() OVER (PARTITION BY ExamKey ORDER BY `Order`) AS new_order
-                    FROM Questions
-                    WHERE ExamKey = %s
-                ) AS ranked ON q.QuestionID = ranked.QuestionID
-                SET q.`Order` = ranked.new_order
-                WHERE q.ExamKey = %s
-            """, [exam.pk, exam.pk])
+    # @classmethod
+    # def rebalance_orders(cls, exam):
+    #     """
+    #     بازنشانی Order ها به ۱, ۲, ۳, ...
+    #     بهینه‌ترین روش برای MySQL 8.0+
+    #     """
+    #     with connection.cursor() as cursor:
+    #         cursor.execute("""
+    #             UPDATE Questions AS q
+    #             INNER JOIN (
+    #                 SELECT 
+    #                     QuestionID, 
+    #                     ROW_NUMBER() OVER (PARTITION BY ExamKey ORDER BY `Order`) AS new_order
+    #                 FROM Questions
+    #                 WHERE ExamKey = %s
+    #             ) AS ranked ON q.QuestionID = ranked.QuestionID
+    #             SET q.`Order` = ranked.new_order
+    #             WHERE q.ExamKey = %s
+    #         """, [exam.pk, exam.pk])
             
-            return cursor.rowcount
+    #         return cursor.rowcount

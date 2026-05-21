@@ -10,6 +10,13 @@ from Exams.models import Exam
 from Departments.models import Department
 from Users.models import User
 from Enrollments.models import Enrollment
+from EduStaffs.models import EduStaff
+from LoginSessions.models import LoginSession
+from ExamResults.models import ExamResult
+from IPAddressLogs.models import IPAddressLog
+from FraudFlags.models import FraudFlag
+from QuestionOptions.models import QuestionOption
+from BehavioralMetrics.models import BehavioralMetric
 from main.views import get_time_now
 from django.contrib.auth.models import User as SuperUser
 from Questions.models import Question
@@ -41,6 +48,13 @@ class Command(BaseCommand):
         Enrollment.objects.all().delete()
         Question.objects.all().delete()
         Exam.objects.all().delete()
+        EduStaff.objects.all().delete()
+        LoginSession.objects.all().delete()
+        ExamResult.objects.all().delete()
+        IPAddressLog.objects.all().delete()
+        FraudFlag.objects.all().delete()
+        QuestionOption.objects.all().delete()
+        BehavioralMetric.objects.all().delete()
         self.stdout.write(self.style.SUCCESS("All previous data deleted successfully"))
 
         SuperUser.objects.create_superuser(
@@ -59,16 +73,21 @@ class Command(BaseCommand):
         TOTAL_SCORES = [5, 8, 10, 20, 100]
 
         COURSE_COUNT = 12
-        USER_COUNT = 30
+        USER_COUNT = 50
         TEACHER_LIMIT = 10
+        STAFF_LIMIT = TEACHER_LIMIT + 12
         QUESTION_LIMIT = 3
-        DEPARTMENT_COUNT = 11
+        DEPARTMENT_COUNT = 12
 
         users = []
         for i in range(USER_COUNT):
-            username = f"user{i}"
+            username = f"user{i+1}"
             role = "teacher"
-            if (i > TEACHER_LIMIT):
+            if (i < TEACHER_LIMIT):
+                role = "teacher"
+            elif (i < STAFF_LIMIT):
+                role = "staff"
+            else:
                 role = "student"
             users.append(
                 User.objects.create(
@@ -92,18 +111,26 @@ class Command(BaseCommand):
 
         teachres = []
         students = []
+        staffs = []
         for user in users:
-            if (user.Role == "teacher"):
+            if (user.Role == "student"):
+                students.append(
+                    Student.objects.create(
+                        StudentNumber=random.randint(100000000, 999999999),
+                        UserKey=user,
+                        DepartmentKey=random.choice(departments),
+                    )
+                )
+            elif (user.Role == "teacher"):
                 teachres.append(
                     Teacher.objects.create(
                         UserKey=user,
                         DepartmentKey=random.choice(departments),
                     )
                 )
-            elif (user.Role == "student"):
-                students.append(
-                    Student.objects.create(
-                        StudentNumber=random.randint(100000000, 999999999),
+            elif (user.Role == "staff"):
+                staffs.append(
+                    EduStaff.objects.create(
                         UserKey=user,
                         DepartmentKey=random.choice(departments),
                     )
@@ -193,11 +220,100 @@ class Command(BaseCommand):
                             File(img_file),
                             save=True
                         )
-                    self.stdout.write(self.style.SUCCESS(f"✅ Image attached to question {question.pk} for exam {exam.pk}"))
+                    # self.stdout.write(self.style.SUCCESS(f"✅ Image attached to question {question.pk} for exam {exam.pk}"))
                 else:
                     self.stdout.write(self.style.WARNING(f"⚠️ Image file not found at {question_image}"))
                 questions.append(question)
 
         self.stdout.write(self.style.SUCCESS(f"Questions created successfully"))
+
+        login_sessions = []
+        for i in range(20):
+            login_sessions.append(
+                LoginSession.objects.create(
+                    StudentKey=random.choice(students),
+                    ExamKey=random.choice(exams),
+                    LoginTime=get_time_now()-timedelta(hours=random.randint(24, 47)),
+                    LogoutTime=get_time_now()-timedelta(hours=random.randint(48, 72)),
+                    IsActive=False,
+                )
+            )
+        self.stdout.write(self.style.SUCCESS(f"Login sessions created successfully"))
+
+        behaviorals = []
+        for question in questions:
+            time_spent=random.randint(200, 1000)
+            behaviorals.append(
+                BehavioralMetric.objects.create(
+                    SessionKey=random.choice(login_sessions),
+                    QuestionKey=question,
+                    TotalTimeSpent=time_spent,
+                    TabSwitchCount=random.choice([0, 0, 0, 0, 0, 0, 1, 2, 3, 4]),
+                    CopyPasteCount=random.choice([0, 0, 0, 0, 0, 0, 1, 2, 3, 4]),
+                    IdleTime=time_spent-20,
+                )
+            )
+        self.stdout.write(self.style.SUCCESS(f"Behavioral metrics created successfully"))
+
+        exam_results = []
+        for exam in exams:
+            exam_results.append(
+                ExamResult.objects.create(
+                    ExamKey=exam,
+                    StudentKey=random.choice(students),
+                    TotalScore=random.randint(10, 20),
+                    Grade=random.choice(['A', 'B', 'C']),
+                    CalculatedAt=get_time_now(),
+                )
+            )
+        self.stdout.write(self.style.SUCCESS(f"Exam results created successfully"))
+        
+        fraud_flags= []
+        reasons = [f'reason_{i}' for i in range(20)]
+        severities = [f'severity_{i}' for i in range(10)]
+        flags = [f'flag_{i}' for i in range(5)]
+        statuses = [f'status_{i}' for i in range(10)]
+        for question in questions:
+            fraud_flags.append(
+                FraudFlag.objects.create(
+                    SessionKey=random.choice(login_sessions),
+                    QuestionKey=question,
+                    Reason=random.choice(reasons),
+                    RiskScore=random.randint(0, 10),
+                    Severity=random.choice(severities),
+                    FlagType=random.choice(flags),
+                    Status=random.choice(statuses),
+                    GeneratedAt=get_time_now(),
+                )
+            )
+        self.stdout.write(self.style.SUCCESS(f"Fraud flags created successfully"))
+        
+        IPs = [f'{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}.{random.randint(1, 255)}']
+        locations = [f'location_{i}' for i in range(10)]
+        IP_logs = []
+        for i in range(20):
+            IP_logs.append(
+                IPAddressLog.objects.create(
+                    SessionKey=random.choice(login_sessions),
+                    IPAddress=random.choice(IPs),
+                    LogTime=get_time_now()-timedelta(hours=random.randint(48, 72)),
+                    Location=random.choice(locations),
+                )
+            )
+        self.stdout.write(self.style.SUCCESS(f"IP logs created successfully"))
+
+        option_texts = [f'option_{i}' for i in range(100)]
+        option_lables = [f'label_{i}' for i in range(1, 5)]
+        options = []
+        for question in questions:
+            options.append(
+                QuestionOption.objects.create(
+                    QuestionKey=question,
+                    OptionText=random.choice(option_texts),
+                    OptionLabel=random.choice(option_lables),
+                    IsCorrect=random.choice([True, True, True, False]),
+                )
+            )
+        self.stdout.write(self.style.SUCCESS(f"Question options created successfully"))
 
         self.stdout.write(self.style.SUCCESS("Done ✅"))

@@ -3,7 +3,7 @@ from LoginSessions.models import LoginSession
 from Questions.models import Question
 
 class QuestionViewLog(models.Model):
-    # ViewLogID = models.AutoField(primary_key=True, verbose_name="شناسه لاگ")
+    ViewLogID = models.AutoField(primary_key=True, verbose_name="شناسه لاگ")
 
     SessionKey = models.ForeignKey(
         LoginSession,
