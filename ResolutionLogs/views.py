@@ -9,6 +9,9 @@ from main.constant import Colors
 from main.views import get_time_now
 import json
 import time
+from FraudDetection.services import register_event
+from Exams.models import Exam
+from Students.models import Student
 
 @require_POST
 def change_size(request):
@@ -43,6 +46,11 @@ def change_size(request):
         ChangeTime=get_time_now()
     )
 
+    exam_id = request.session.get('exam_id')
+    student = Student.objects.get(pk=user_pk)
+    exam = Exam.objects.get(pk=exam_id)
+
+    register_event(student, exam, "resolution_change")
     return JsonResponse({
         'status': 'success'
     })
