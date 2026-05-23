@@ -3,7 +3,7 @@ from QuestionOptions.models import QuestionOption
 
 class MultipleChoiceAnswerForm(forms.Form):
     
-    SelectedOptionKey = forms.ModelChoiceField(
+    selected_option_key = forms.ModelChoiceField(
         queryset=QuestionOption.objects.none(),
         label="گزینه مورد نظر",
         widget=forms.RadioSelect(attrs={
@@ -19,43 +19,40 @@ class MultipleChoiceAnswerForm(forms.Form):
         super().__init__(*args, **kwargs)
         
         if self.question:
-            # ⭐ فقط گزینه‌های همین سوال
-            self.fields['SelectedOptionKey'].queryset = QuestionOption.objects.filter(
+            
+            self.fields['selected_option_key'].queryset = QuestionOption.objects.filter(
                 QuestionKey=self.question
             )
-            # برای نمایش بهتر
-            self.fields['SelectedOptionKey'].label_from_instance = self._get_option_label
+            self.fields['selected_option_key'].label_from_instance = self._get_option_label
     
     def _get_option_label(self, obj):
-        """نمایش گزینه به صورت: الف) متن گزینه"""
         return f"{obj.OptionLabel}) {obj.OptionText}"
     
-    def clean_SelectedOptionKey(self):
-        option = self.cleaned_data.get('SelectedOptionKey')
-        
+    def clean_selected_option_key(self):
+        option = self.cleaned_data.get('selected_option_key')
         # بررسی امنیتی: آیا گزینه واقعاً متعلق به این سوال است؟
         if option and option.QuestionKey_id != self.question.QuestionID:
             raise forms.ValidationError('گزینه انتخاب شده معتبر نیست.')
         
         return option
     
-    def save(self, question, student):
-        """ذخیره پاسخ تستی"""
-        from Answers.models import Answer
+    # def save(self, question, student):
+    #     """ذخیره پاسخ تستی"""
+    #     from Answers.models import Answer
         
-        selected_option = self.cleaned_data['SelectedOptionKey']
+    #     selected_option = self.cleaned_data['selected_option_key']
         
-        answer, created = Answer.objects.update_or_create(
-            QuestionKey=question,
-            StudentKey=student,
-            defaults={
-                'SelectedOptionKey': selected_option,
-                'IsCorrect': selected_option.IsCorrect,
-                'answer_text': None,  # صراحتاً NULL
-                'answer_file': None,  # صراحتاً NULL
-            }
-        )
-        return answer
+    #     answer, created = Answer.objects.update_or_create(
+    #         QuestionKey=question,
+    #         StudentKey=student,
+    #         defaults={
+    #             'SelectedOptionKey': selected_option,
+    #             'IsCorrect': selected_option.IsCorrect,
+    #             'answer_text': None,
+    #             'answer_file': None,
+    #         }
+    #     )
+    #     return answer
     
 
 

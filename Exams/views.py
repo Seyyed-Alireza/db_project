@@ -8,6 +8,7 @@ from django.utils import timezone
 from main.views import get_user
 from Exams.models import Exam
 from Enrollments.models import Enrollment
+from QuestionViewLogs.models import QuestionViewLog
 from Courses.models import Course
 from Users.models import User
 from Students.models import Student
@@ -293,7 +294,13 @@ def exit_exam(request):
                         'message': 'successfully exited',
                         'course_id': login_session.ExamKey.CourseKey.pk
                     }
-
+                    last_log = QuestionViewLog.objects.filter(
+                        SessionKey=request.session.get('exam_session_id')
+                    ).last()
+                    if (last_log):
+                        last_log.ViewEndTime = get_time_now()
+                        last_log.save()
+                    # QuestionViewLog.objects.filter(SessionKey=request.session.get('exam_session_id')).update(ViewEndTime=get_time_now())
                     event = data_received.get('event')
                     login_session.IsActive = False
                     login_session.LogoutTime = get_time_now()
@@ -302,6 +309,7 @@ def exit_exam(request):
                     request.session.pop('exam_id', None)
                     request.session.pop('last_time', None)
                     request.session.pop('started_exam', None)
+                    request.session.pop('question_order', None)
                     if (event == 'exit_exam_without_click'):
                         print(f'{Colors.WARNING}[WARNING]: User {full_name} exited from exam {login_session.ExamKey.pk} without clicling exit exam button! perhaps closed browser window{Colors.RESET}')
                     else:

@@ -104,6 +104,8 @@ function disableActionBtns() {
     if (nextQuestionBtn) nextQuestionBtn.disabled = true;
     const endExamBtn = document.getElementById('end-exam');
     if (endExamBtn) endExamBtn.disabled = true;
+    const deleteOptionBtn = document.getElementById('clear-answer');
+    if (deleteOptionBtn) deleteOptionBtn.disabled = true;
 }
 
 function enableActionBtns() {
@@ -115,6 +117,8 @@ function enableActionBtns() {
     if (nextQuestionBtn) nextQuestionBtn.disabled = false;
     const endExamBtn = document.getElementById('end-exam');
     if (endExamBtn) endExamBtn.disabled = false;
+    const deleteOptionBtn = document.getElementById('clear-answer');
+    if (deleteOptionBtn) deleteOptionBtn.disabled = false;
 }
 
 async function saveAnswer() {
@@ -133,9 +137,14 @@ async function saveAnswer() {
         })
         const data = await response.json();
         if (data.success) {
-            notification(data.message);
+            notification(data.message, 'success');
         } else {
-            notification(data.message, 'error');
+            console.log(data);
+            if (data.message?.selected_option_key) {
+                notification(data.message.selected_option_key, 'error');
+            } else if (data.message?.__all__) {
+                notification(data.message.__all__, 'error');
+            }
         }
     } catch (error) {
         notification('خطا در ارتباط با سرور', 'error');
@@ -144,6 +153,29 @@ async function saveAnswer() {
         saveAnswerBtn.textContent = 'ذخیره پاسخ';
     }
 }
+
+function deleteOption() {
+    const radios = document.querySelectorAll('input[name="selected_option_key"]');
+    radios.forEach(radio => {
+        radio.checked = false;
+    });
+    
+    fetch('/delete-selected-option/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            notification(data.message, 'success');
+        } else {
+            notification(data.message, 'error')
+        }
+    });
+};
 
 function updateQuestionForm(data) {
     if (data.success) {
@@ -164,6 +196,10 @@ function updateQuestionForm(data) {
         const saveAnswerBtn = document.getElementById('save-answer');
         if (saveAnswerBtn) {
             saveAnswerBtn.addEventListener('click', saveAnswer);
+        }
+        const deleteOptionBtn = document.getElementById('clear-answer');
+        if (deleteOptionBtn) {
+            deleteOptionBtn.addEventListener('click', deleteOption);
         }
     } else {
         console.log('failed')

@@ -71,7 +71,8 @@ def get_question(request, q):
                 SELECT AnswerText, AnswerFile 
                 FROM Answers 
                 WHERE QuestionKey = %s AND StudentKey = %s
-            """, [q.pk, request.session.get('user_id')])
+            """, [q.pk, request.session.get('user_id')]
+            )
             row = cursor.fetchone()
             if row:
                 initial['answer_text'] = row[0]
@@ -82,8 +83,40 @@ def get_question(request, q):
                     }
         form = DescriptiveAnswerForm(initial=initial)
         template_partial = 'Questions/descriptive_question.html'
-            
+        
+    elif (q.QuestionType == EventType.QUESTION_MULTIPLE_CHOICE):
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT QuestionKey, OptionText, OptionLabel
+                FROM questionoptions
+                WHERE QuestionKey = %s
+            """, [q.pk]
+            )
+            row = cursor.fetchone()
 
+        initial = {}
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT SelectedOptionKey
+                FROM Answers
+                WHERE QuestionKey = %s AND StudentKey = %s
+            """, [q.pk, request.session.get('user_id')]
+            )
+            row = cursor.fetchone()
+            if row:
+                initial['selected_option_key'] = row[0]
+        form = MultipleChoiceAnswerForm(question=q, initial=initial)
+        print(form)
+        template_partial = 'Questions/mcq_question.html'
+    last_log = QuestionViewLog.objects.filter(
+        SessionKey=request.session.get('exam_session_id'),
+        QuestionKey=q
+    ).last()
+    if (last_log):
+        last_log.ViewEndTime = get_time_now()
+        last_log.save()
+    # QuestionViewLog.objects.filter(SessionKey=request.session.get('exam_session_id')).update(ViewEndTime=get_time_now())
+    
     request.session['question_order'] = q.Order
     question = {
         'id': q.pk,
@@ -111,7 +144,7 @@ def get_question(request, q):
             VALUES (%s, %s, %s)
         """, [session_id, question_id, start_time])
 
-        return render_to_string(template_partial, context, request=request)
+    return render_to_string(template_partial, context, request=request)
 
 
 def custom_question(request):

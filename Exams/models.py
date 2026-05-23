@@ -49,7 +49,7 @@ class Exam(models.Model):
     )
 
     def __str__(self):
-        return f"{self.Title} - {self.CourseKey.CourseName} - {self.StartTime.strftime('%Y-%m-%d %H:%M')}"
+        return f"{self.pk} - {self.Title} - {self.CourseKey.CourseName} - {self.StartTime.strftime('%Y-%m-%d %H:%M')}"
     
     class Meta:
         managed = False
