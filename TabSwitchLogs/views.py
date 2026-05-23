@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.utils import timezone
 from TabSwitchLogs.models import TabSwitchLog
+from Questions.models import Question
 import json
 from django.views.decorators.http import require_POST
 from main.constant import EventType
@@ -57,7 +58,7 @@ def blur_activity(request):
 
         TabSwitchLog.objects.create(
             SessionKey_id=session_id,
-            QuestionKey_id=None,
+            QuestionKey_id=Question.objects.filter(ExamKey=request.session.get('exam_id'), Order=request.session.get('question_order')).first().pk,
             EventTime=get_time_now(),
             EventType=event_type,
             Duration=seconds

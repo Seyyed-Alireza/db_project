@@ -1,61 +1,62 @@
 <!-- سوال تستی -->
 <div class="question-container" data-question-id="{{ question.QuestionID }}" data-order="{{ question.Order }}">
     <div class="question-header">
-        <span class="badge badge-primary">📝 سوال تستی</span>
-        <span class="question-number">سوال {{ question.Order }} از {{ total_questions }}</span>
-        <span class="score">نمره: {{ question.Score }}</span>
+        <span class="badge badge-primary">سوال تستی</span><span>|</span>
+        <span class="question-number">سوال {{ question.order }}</span><span>|</span>
+        <span class="score">نمره: {{ question.score }}</span>
     </div>
     
     <div class="question-body">
         <div class="question-text">
-            {{ question.QuestionText|safe }}
+            {{ question.text|safe }}
         </div>
         
         {% if question.QuestionImage %}
             <div class="question-image">
-                <img src="{{ question.QuestionImage.url }}" alt="تصویر سوال" class="img-fluid">
+                <img src="{{ question.image }}" alt="تصویر سوال" id="question-image">
             </div>
         {% endif %}
     </div>
     
-    <form id="answer-form" class="answer-form" data-question-type="mcq">
+    <form id="answer-form" action="{% url 'Answers:save_answer_m' question.id %}" novalidate autocomplete="off" data-question-type="mcq">
         {% csrf_token %}
         
         <div class="options-container">
-            {% for option in form.SelectedOptionKey.field.queryset %}
+            {% for option in form.selected_option_key.field.queryset %}
                 <div class="option-item">
                     <input type="radio" 
-                           name="{{ form.SelectedOptionKey.name }}" 
+                           name="{{ form.selected_option_key.name }}" 
                            value="{{ option.pk }}"
                            id="option_{{ option.pk }}"
-                           {% if form.SelectedOptionKey.value|stringformat:"s" == option.pk|stringformat:"s" %}checked{% endif %}>
+                           {% if form.selected_option_key.value == option.pk %}checked{% endif %}>
                     <label for="option_{{ option.pk }}">
-                        <strong>{{ option.OptionLabel }})</strong> {{ option.OptionText }}
+                        <strong>{{ option.OptionLabel }}</strong> {{ option.OptionText }}
                     </label>
                 </div>
             {% endfor %}
         </div>
         
         <div class="form-actions">
-            <button type="button" class="btn btn-secondary" id="save-answer-btn">
-                💾 ذخیره پاسخ
+            {% if not first_question %}
+                <button type="button" class="btn" id="pre-question">
+                    سوال قبلی
+                </button>
+            {% endif %}
+            <button type="button" class="btn" id="save-answer">
+                ذخیره پاسخ
             </button>
-            <button type="button" class="btn btn-primary" id="next-question-btn" {% if last_question %}disabled{% endif %}>
-                {% if last_question %}
-                    🏁 پایان آزمون
-                {% else %}
-                    ⏩ سوال بعدی
-                {% endif %}
+            
+            <button type="button" class="btn btn-danger" id="clear-answer">حذف پاسخ</button>
+
+            {% if not last_question %}
+                <button type="button" class="btn" id="next-question">
+                    سوال بعدی
+                </button>
+            {% endif %}
+            <button type="button" class="btn" id="end-exam">
+                پایان آزمون
             </button>
         </div>
     </form>
     
-    {% if existing_answer %}
-        <div class="alert alert-info">
-            ✅ پاسخ قبلی ثبت شده است.
-            {% if existing_answer.SelectedOptionKey %}
-                (گزینه {{ existing_answer.SelectedOptionKey.OptionLabel }})
-            {% endif %}
-        </div>
-    {% endif %}
 </div>

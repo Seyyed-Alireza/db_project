@@ -2,19 +2,24 @@
 
 <div class="question-container" data-question-id="{{ question.QuestionID }}" data-order="{{ question.Order }}">
     <div class="question-header">
-        <span class="badge badge-success">✍️ سوال تشریحی</span>
-        <span class="question-number">سوال {{ question.order }}</span>
-        <span class="score">نمره: {{ question.score }}</span>
+        <span class="badge badge-success">✍️ سوال تشریحی</span><span>|</span>
+        <span class="question-number">سوال {{ question.order }}</span><span>|</span>
+        <span class="score">نمره سوال: {{ question.score }}</span>
     </div>
     
     <div class="question-body">
         <div class="question-text">
             {{ question.text|safe }}
         </div>
-        <img src="{{ question.image }}" alt="تصویر سوال" id="question-image">
+        
+        {% if question.image %}
+            <div class="question-image">
+                <img src="{{ question.image }}" alt="تصویر سوال" id="question-image">
+            </div>
+        {% endif %}
     </div>
     
-    <form id="answer-form" action="{% url 'Answers:save_answer' question.id %}" class="answer-form" data-question-type="descriptive" enctype="multipart/form-data" novalidate autocomplete="off">
+    <form id="answer-form" action="{% url 'Answers:save_answer_d' question.id %}" class="answer-form" data-question-type="descriptive" enctype="multipart/form-data" novalidate autocomplete="off">
         {% csrf_token %}
         
         <div class="form-group">

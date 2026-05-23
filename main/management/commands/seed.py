@@ -311,7 +311,7 @@ class Command(BaseCommand):
                     QuestionKey=question,
                     OptionText=random.choice(option_texts),
                     OptionLabel=random.choice(option_lables),
-                    IsCorrect=random.choice([True, True, True, False]),
+                    IsCorrect=random.choice([True, False, False, False]),
                 )
             )
         self.stdout.write(self.style.SUCCESS(f"Question options created successfully"))

@@ -73,7 +73,7 @@ def save_answer_d(request, question_id):
                     VALUES (%s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE
                         AnswerText = VALUES(AnswerText),
-                        SubmittedAt = Values(SubmittedAt),
+                        SubmittedAt = VALUES(SubmittedAt),
                         AnswerFile = VALUES(AnswerFile)
                 """, [question_id, std_id, answer_text, get_time_now(), file_path])
         else:
@@ -88,7 +88,7 @@ def save_answer_d(request, question_id):
                     VALUES (%s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE
                         AnswerText = VALUES(AnswerText),
-                        SubmittedAt = Values(SubmittedAt)
+                        SubmittedAt = VALUES(SubmittedAt)
                 """, [question_id, std_id, answer_text, get_time_now()])
         # answer, created = Answer.objects.update_or_create(
         #     QuestionKey_id=question_id,
@@ -112,3 +112,77 @@ def save_answer_d(request, question_id):
         })
     return JsonResponse({}, status=404)
 
+def save_answer_m(request, question_id):
+    if (request.method == 'POST'):
+        
+        exam_id = request.session.get('exam_id', None)
+        std_id = request.session.get('user_id', None)
+        if not(all([exam_id, std_id])):
+            return JsonResponse({
+                'success': False,
+                'message': 'Unknown exam'
+            })
+        try:
+            question = Question.objects.get(QuestionID=question_id, ExamKey_id=exam_id, QuestionType=EventType.QUESTION_MULTIPLE_CHOICE)
+        except ObjectDoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'question not found'
+            })
+        form = MultipleChoiceAnswerForm(request.POST, question=question)
+        
+        if not(form.is_valid()):
+            return JsonResponse({
+                'success': False,
+                'message': form.errors
+            }, status=400)
+        selected_option = form.cleaned_data.get('selected_option_key')
+        # print(selected_option.pk)
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                INSERT INTO answers (
+                    QuestionKey,
+                    StudentKey,
+                    SelectedOptionKey,
+                    SubmittedAt
+                )
+                VALUES (%s, %s, %s, %s)
+                ON DUPLICATE KEY UPDATE
+                    SelectedOptionKey = VALUES(SelectedOptionKey),
+                    SubmittedAt = VALUES(SubmittedAt)
+            """, [question_id, std_id, selected_option.pk, get_time_now()]
+            )
+        return JsonResponse({
+            'success': True,
+            'message': 'پاسخ با موفقیت ذخیره شد.'
+        })
+    return JsonResponse({}, status=404)
+
+def delete_selected_option(request):
+    if (request.method == 'POST'):
+        exam_id = request.session.get('exam_id', None)
+        std_id = request.session.get('user_id', None)
+        q_order = request.session.get('question_order', None)
+        question = Question.objects.get(Order=q_order, ExamKey=exam_id)
+        if not(all([exam_id, std_id, q_order])):
+            return JsonResponse({
+                'success': False,
+                'message': 'خطای نامشخص'
+            })
+        try :
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    DELETE FROM answers
+                    WHERE QuestionKey = %s AND StudentKey = %s
+                """, [question.QuestionID, std_id]
+                )
+        except Exception:
+            return JsonResponse({
+                'success': False,
+                'message': 'خطای نامشخص'
+            })
+        return JsonResponse({
+            'success': True,
+            'message': 'پاسخ با موفقیت پاک شد.'
+        })
+    return JsonResponse({}, status=404)
