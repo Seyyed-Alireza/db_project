@@ -32,13 +32,19 @@
                 {% for student in students %}
                     <tr class="table-row">
                         <td class="table-data">
-                            {{ student.StudentKey__StudentNumber }}
+                            {{ student.student_number }}
                         </td>
-                        <td class="table-data">
+                        <td class="table-data" >
                             {{ student.count }}
                         </td>
-                        <td class="table-data">
-                            نامعلوم
+                        <td class="table-data" style="color: {{ student.fraud_color }}; font-weight: bold;">
+                           {{ student.fraud_status }}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr class="table-row">
+                        <td colspan="3" class="table-data" style="text-align: center; padding: 20px;">
+                            هنوز داده‌ای ثبت نشده است.
                         </td>
                     </tr>
                 {% endfor %}

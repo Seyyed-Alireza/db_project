@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from FraudDetection.services import register_event
+from db_project.FraudFlags.services import register_event
 from Exams.models import Exam
 from Students.models import Student
 # Create your views here.

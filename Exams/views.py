@@ -22,6 +22,8 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from .forms import ExamForm
 import json, time, jdatetime, datetime
+from FraudFlags.services import manual_fraud_check
+from FraudFlags.models import FraudFlag
 
 def exam_status(request, course_id, exam_id, user):
     cache_key = f'course_{course_id}'
@@ -33,11 +35,38 @@ def exam_status(request, course_id, exam_id, user):
     if (course.TeacherKey_id != user.teacher.pk):
             return render(request, 'Courses/not_allowed.html')
     
-    students = LoginSession.objects.filter(ExamKey=exam_id).values('StudentKey__StudentNumber').annotate(count=Count('pk'))
+    # students = LoginSession.objects.filter(ExamKey=exam_id).values('StudentKey__StudentNumber').annotate(count=Count('pk'))
+    sessions = LoginSession.objects.filter(ExamKey=exam_id).select_related('StudentKey')
+    student_report = {}
 
+    for s in sessions:
+        std_num = s.StudentKey.StudentNumber
+        if std_num not in student_report:
+            fraud_entry = FraudFlag.objects.filter(SessionKey__StudentKey=s.StudentKey, SessionKey__ExamKey_id = exam_id).last()
+
+            status = "عادی"
+            color = "#00ffcc"
+            if fraud_entry:
+                if fraud_entry.Severity == 'High Risk':
+                    status = "خطر بالا"
+                    color = "#ff4d4d"  
+                elif fraud_entry.Severity == 'Suspicious':
+                    status = "مشکوک"
+                    color = "#ffcc00"  
+
+            student_report[std_num] = {
+                    'student_number': std_num,
+                    'count': 0,
+                    'fraud_status': fraud_entry.Severity if fraud_entry else "Normal",
+                    'fraud_color': 'red' if (fraud_entry and fraud_entry.Severity == 'High Risk') else 'yellow' if (fraud_entry and fraud_entry.Severity == 'Suspicious') else '#00ffcc'
+                }    
+            
+        student_report[std_num]['count'] += 1
+        
     context = {
-        'students': students
+        'students': student_report.values()
     }
+    
     return context
 
 def validate_teacher(request, course):
@@ -305,6 +334,14 @@ def exit_exam(request):
                     login_session.IsActive = False
                     login_session.LogoutTime = get_time_now()
                     login_session.save(update_fields=['IsActive', 'LogoutTime'])
+                
+                    try:
+                        exam_id = login_session.ExamKey.pk
+                        manual_fraud_check(exam_id, student_id=user.pk)
+                        print(f"[SUCCESS]: ارزیابی تقلب برای دانشجو {user.pk} انجام شد.")
+                    except Exception as e:
+                        print(f"[ERROR]: خطا در اجرای دستی بررسی تقلب: {e}")
+
                     request.session.pop('exam_session_id', None)
                     request.session.pop('exam_id', None)
                     request.session.pop('last_time', None)
@@ -315,7 +352,7 @@ def exit_exam(request):
                     else:
                         
                         print(f'{Colors.SUCCESS}[SUCCESS]: User {full_name} exited from exam {login_session.ExamKey.pk} succesfully{Colors.RESET}')
-                    # additional = '(without clicling exit exam button! perhaps closed browser window)' if (event == 'exit_exam_without_click') else ''
+                    # additional = '(without clicking exit exam button! perhaps closed browser window)' if (event == 'exit_exam_without_click') else ''
                     # print(f'[LOG]: User {user} exited from exam {login_session.ExamKey.pk}', additional)
                     # end = time.perf_counter_ns()
                     # print(f'{Colors.INFO}[INFO]: executing time: {(end - start)} nanosecond{Colors.RESET}')
