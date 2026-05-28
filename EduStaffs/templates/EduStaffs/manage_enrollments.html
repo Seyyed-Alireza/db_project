@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <title>مدیریت دانشجویان کلاس</title>
+    <style>
+        body { font-family: Tahoma; direction: rtl; padding: 20px; background: #f4f7f6; }
+        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: right; }
+        .btn-add { background: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-del { color: #dc3545; text-decoration: none; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>مدیریت دانشجویان درس: {{ course.CourseName }}</h2>
+    
+    <form method="post" style="background: #e9ecef; padding: 15px; border-radius: 5px;">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn-add">افزودن دانشجو به این کلاس</button>
+    </form>
+
+    <h3>لیست دانشجویان ثبت‌نام شده:</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>نام و نام خانوادگی</th>
+                <th>نام کاربری</th>
+                <th>شماره دانشجویی</th>
+                <th>وضعیت</th> {# اضافه شده برای نمایش وضعیت #}
+                <th>عملیات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for en in enrolled_students %}
+            <tr>
+                <td>{{ en.FirstName }} {{ en.LastName }}</td>
+                <td>{{ en.Username }}</td>
+                <td>{{en.StudentNumber}}</td>
+                <td>{{ en.Status }}</td> 
+                <td>
+                    {% if en.UserKey %} 
+                        <a href="{% url 'EduStaffs:remove_student_from_course' course.CourseID en.UserKey %}" class="btn-del" onclick="return confirm('آیا مطمئن هستید؟')">حذف از کلاس</a>
+                    {% else %}
+                        <span>(شناسه دانشجو موجود نیست)</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">هیچ دانشجویی در این کلاس ثبت‌نام نکرده است.</td></tr> {# colspan به 4 تغییر کرد چون 4 ستون داریم #}
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <a href="{% url 'EduStaffs:manage_courses' %}">بازگشت به لیست کلاس‌ها</a>
+</div>
+</body>
+</html>

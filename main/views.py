@@ -11,6 +11,7 @@ from Teachers.models import Teacher
 import datetime, jdatetime
 from main.constant import Colors
 import time
+from EduStaffs.models import EduStaff
 
 def mainpage(request):
     user_pk = request.session.get('user_id')
@@ -29,6 +30,9 @@ def mainpage(request):
             # SELECT DISTINCT c.* FROM Course AS c JOIN Enrollment AS e ON e.CourseKey = c.CourseID WHERE e.StudentKey = <StudentID>;
         elif (user.Role == "teacher" or user.Role == "Teacher"):
             courses = Course.objects.filter(TeacherKey_id=user_pk)
+        # elif (user.Role.lower() == "edustaff"):
+        else:
+            pass
 
     context = {
         'user': user,

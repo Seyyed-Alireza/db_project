@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختصاص استاد به کلاس</title>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --bg-color: #f8f9fc;
+            --card-bg: #ffffff;
+            --text-main: #2b2d42;
+            --text-muted: #6c757d;
+            --border-color: #e0e4e8;
+            --success-color: #2ec4b6;
+        }
+
+        body {
+            direction: rtl;
+            font-family: 'Tahoma', 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .assign-card {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .assign-card h2 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            text-align: center;
+            border-bottom: 2px solid var(--bg-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        .course-info {
+            background: #f1f4ff;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            font-family: inherit;
+            font-size: 1rem;
+            background-color: #fff;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: var(--primary-color);
+        }
+
+        /* استایل زیبا برای آپشن‌ها */
+        option {
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="assign-card">
+        <h2>اختصاص استاد</h2>
+        
+        <div class="course-info">
+            درس: {{ course.CourseName }}
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="teacher_select">لیست اساتید دپارتمان</label>
+                <select name="teacher_id" id="teacher_select" required>
+                    <option value="" disabled selected>-- انتخاب کنید --</option>
+                    {% for teacher in teachers %}
+                        <option value="{{ teacher.UserKey_id }}">
+                             {{ teacher.UserKey.FirstName }} {{ teacher.UserKey.LastName }} 
+                             {% if teacher.UserKey.Username %}
+                                ({{ teacher.UserKey.Username }})
+                             {% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="btn-submit">ثبت و تایید نهایی</button>
+        </form>
+
+        <a href="{% url 'EduStaffs:manage_courses' %}" class="back-link">
+            ← بازگشت به مدیریت کلاس‌ها
+        </a>
+    </div>
+
+</body>
+</html>

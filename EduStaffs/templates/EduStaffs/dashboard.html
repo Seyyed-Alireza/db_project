@@ -1,0 +1,26 @@
+{% extends "main/index.html" %} 
+
+{% block content %}
+<div class="container" style="direction: rtl; text-align: right; padding: 20px;">
+    <h1>پنل مسئول آموزش</h1>
+    <p>دانشکده: {{ department.DepartmentName }}</p>
+
+    <hr>
+
+    <h3>عملیات مدیریتی</h3>
+    <ul style="list-style: none; padding: 20px;">
+        <li style="margin-bottom: 20px;">
+            <a href="{% url 'EduStaffs:course_create' %}" class="btn btn-primary">ایجاد کلاس</a>
+        </li>
+        <li style="margin-bottom: 20px;">
+            <a href="{% url 'EduStaffs:manage_courses' %}" class="btn btn-info">مدیریت کلاس‌ها</a>
+        </li>
+        <li style="margin-bottom: 20px;">
+            <a href="{% url 'EduStaffs:manage_courses' %}" class="btn btn-warning">اختصاص دانشجو به کلاس</a>
+        </li>
+        <li style="margin-bottom: 20px;">
+            <a href="{% url 'EduStaffs:manage_courses' %}" class="btn btn-success">اختصاص استاد به کلاس</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}

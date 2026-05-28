@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.sessions.backends.db import SessionStore
 from .forms import LoginForm
 from .models import User
-
+from EduStaffs.models import EduStaff
 def login_view(request):
     if request.method == 'POST':
         form = LoginForm(request.POST)
@@ -17,6 +17,8 @@ def login_view(request):
             request.session['username']  = user.Username
             request.session['role']      = user.Role
 
+            if EduStaff.objects.filter(UserKey=user).exists():
+                return redirect('EduStaffs:dashboard')
             # messages.success(request, f'خوش آمدید، {user.FirstName}!')
             return redirect('main:mainpage')
         else:

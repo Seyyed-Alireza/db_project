@@ -1,0 +1,50 @@
+{% extends "main/index.html" %}
+
+{% block content %}
+<div style="max-width: 520px; margin: 0 auto;">
+  <h2 style="text-align:center;">ایجاد کلاس جدید</h2>
+  {% if department %}
+    <p style="text-align:center; opacity: .9;">دانشکده: {{ department.DepartmentName|default:department }}</p>
+  {% endif %}
+
+  <form method="post" style="margin-top: 20px;">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div style="color:#ff6b6b; margin-bottom:10px;">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <div style="margin-bottom:12px;">
+      {{ form.CourseName.label_tag }}
+      {{ form.CourseName }}
+      {{ form.CourseName.errors }}
+    </div>
+
+    <div style="margin-bottom:12px;">
+      {{ form.CourseCode.label_tag }}
+      {{ form.CourseCode }}
+      {{ form.CourseCode.errors }}
+    </div>
+
+    <div style="margin-bottom:12px;">
+      {{ form.Units.label_tag }}
+      {{ form.Units }}
+      {{ form.Units.errors }}
+    </div>
+
+    <div style="margin-bottom:12px;">
+      {{ form.CoursePasswordHash.label_tag }}
+      {{ form.CoursePasswordHash }}
+      {{ form.CoursePasswordHash.errors }}
+      <small style="opacity:.8;">اگر خالی باشد، کلاس بدون رمز می‌ماند.</small>
+    </div>
+
+    <div style="display:flex; gap:10px; justify-content:center; margin-top:18px;">
+      <button type="submit" class="btn">ذخیره</button>
+      <a class="btn" href="{% url 'EduStaffs:dashboard' %}">بازگشت</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
