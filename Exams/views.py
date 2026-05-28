@@ -4,6 +4,7 @@ from django.http import Http404, JsonResponse
 from django.db.models import Count
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from datetime import datetime, timedelta
+from django.urls import reverse
 from django.utils import timezone
 from main.views import get_user
 from Exams.models import Exam
@@ -154,7 +155,80 @@ def create_exam(request, course_id):
     })
 
 def edit_exam(request, course_id, exam_id):
-    return render(request, 'Exams/EditExam.html')
+    cache_key = f'course_{course_id}'
+    course = cache.get(cache_key)
+    if not course:
+        course = get_object_or_404(Course, pk=course_id)
+        cache.set(cache_key, course, 10800)
+    
+    if not validate_teacher(request, course):
+        return render(request, 'Courses/not_allowed.html')
+    
+    exam = get_object_or_404(Exam, pk=exam_id, CourseKey_id=course_id)
+
+    def to_jalali_date_str(dt):
+        j = jdatetime.datetime.fromgregorian(datetime=dt)
+        return f"{j.day}/{j.month}/{j.year}"
+    
+    def to_time_str(dt):
+        return dt.strftime("%H:%M")
+    
+    if request.method == "GET":
+        form = ExamForm(initial={
+            "title": exam.Title,
+            "description": exam.Description,
+            "start_date": to_jalali_date_str(exam.StartTime),
+            "start_time": to_time_str(exam.StartTime),
+            "end_date": to_jalali_date_str(exam.EndTime),
+            "end_time": to_time_str(exam.EndTime),
+        })
+        context = {
+            "course": course,
+            "exam": exam,
+            "form": form,
+        }
+        return render(request, "Exams/EditExam.html", context)
+
+    form = ExamForm(request.POST)
+    if not form.is_valid():
+        errors = {field: errs for field, errs in form.errors.items()}
+        return JsonResponse({"success": False, "errors": errors}, status=400)
+    
+    title = form.cleaned_data["title"]
+    description = form.cleaned_data["description"]
+    start_date = form.cleaned_data["start_date"]
+    start_time = form.cleaned_data["start_time"]
+    end_date = form.cleaned_data["end_date"]
+    end_time = form.cleaned_data["end_time"]
+
+    start_datetime = to_miladi(start_date, start_time)
+    end_datetime = to_miladi(end_date, end_time)
+    duration = int((end_datetime - start_datetime).total_seconds() / 60)
+
+    exam.Title = title
+    exam.Description = description
+    exam.StartTime = start_datetime
+    exam.EndTime = end_datetime
+    exam.Duration = duration
+    exam.save(update_fields=["Title", "Description", "StartTime", "EndTime", "Duration"])
+
+    now = get_time_now()
+    data = {
+        "id": exam.pk,
+        "title": exam.Title,
+        "start_time": exam.StartTime.isoformat() if exam.StartTime else None,
+        "end_time": exam.EndTime.isoformat() if exam.EndTime else None,
+        "status": "منتظر شروع" if now < exam.StartTime else "تمام شده" if now > exam.EndTime else "درحال برگزاری",
+    }
+
+    return JsonResponse({
+        "success": True,
+        "message": "آزمون با موفقیت ویرایش شد.",
+        "exam": data,
+        "redirect_url": reverse('Courses:course_page', kwargs={'course_id': course_id})
+
+    })
+
 
 def delete_exam(request, course_id):
     cache_key = f'course_{course_id}'

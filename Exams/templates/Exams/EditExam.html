@@ -1,14 +1,117 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'base-style/base.css' %}">
     <title>ویرایش آزمون</title>
+    <style>
+    .container { max-width: 720px; margin: 24px auto; padding: 16px; }
+    .row { margin-bottom: 12px; }
+    .error { color: #d33; font-size: 0.9rem; margin-top: 4px; }
+    .msg { margin-top: 12px; }
+    .btn { padding: 10px 14px; cursor: pointer; }
+    label { display:block; margin-bottom: 6px; }
+    input, textarea { width: 100%; padding: 8px; }
+  </style>
 </head>
 <body>
-    هنوز هیچی
+    <div class="container">
+    <h2>ویرایش آزمون: {{ exam.Title }}</h2>
+
+    <form id="editExamForm" method="post">
+      {% csrf_token %}
+
+      <div class="row">
+        <label>عنوان</label>
+        {{ form.title }}
+        <div class="error" data-err="title"></div>
+      </div>
+
+      <div class="row">
+        <label>توضیحات</label>
+        {{ form.description }}
+        <div class="error" data-err="description"></div>
+      </div>
+
+      <div class="row">
+        <label>تاریخ شروع</label>
+        {{ form.start_date }}
+        <div class="error" data-err="start_date"></div>
+      </div>
+
+      <div class="row">
+        <label>زمان شروع</label>
+        {{ form.start_time }}
+        <div class="error" data-err="start_time"></div>
+      </div>
+
+      <div class="row">
+        <label>تاریخ پایان</label>
+        {{ form.end_date }}
+        <div class="error" data-err="end_date"></div>
+      </div>
+
+      <div class="row">
+        <label>زمان پایان</label>
+        {{ form.end_time }}
+        <div class="error" data-err="end_time"></div>
+      </div>
+
+      <button class="btn" type="submit">ذخیره تغییرات</button>
+    </form>
+
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('editExamForm');
+    const msg = document.getElementById('msg');
+
+    function clearErrors() {
+      document.querySelectorAll('[data-err]').forEach(el => el.textContent = '');
+      msg.textContent = '';
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearErrors();
+
+      const formData = new FormData(form);
+
+      const res = await fetch(window.location.href, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: formData
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        if (data && data.errors) {
+          for (const [field, errors] of Object.entries(data.errors)) {
+            const el = document.querySelector(`[data-err="${field}"]`);
+            if (el) el.textContent = errors.join(' ');
+          }
+          msg.textContent = 'فرم خطا دارد.';
+        } else {
+          msg.textContent = 'خطای نامشخص رخ داد.';
+        }
+        return;
+      }
+
+      msg.textContent = data.message || 'ذخیره شد.';
+
+      if (data.redirect_url) {
+          setTimeout(() => {
+              window.location.href = data.redirect_url;
+          }, 300); 
+      }
+    });
+  </script>
 </body>
 </html>

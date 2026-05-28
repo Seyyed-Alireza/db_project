@@ -70,7 +70,7 @@ class ExamForm(forms.Form):
 
     description = forms.CharField(
         label='توضیحات (اختیاری)',
-        required=False,  # چون گفتی اختیاری
+        required=False,  # چون اختیاری
         widget=forms.Textarea(attrs={
             'placeholder': 'توضیحات',
             'rows': 3,
