@@ -1,60 +1,470 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>مدیریت دانشجویان کلاس</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدیریت دانشجویان کلاس: {{ course.CourseName }}</title>
+
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+
     <style>
-        body { font-family: Tahoma; direction: rtl; padding: 20px; background: #f4f7f6; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: right; }
-        .btn-add { background: #28a745; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; }
-        .btn-del { color: #dc3545; text-decoration: none; font-size: 0.9em; }
+        :root {
+            --bg-1: #050816;
+            --bg-2: #0f172a;
+            --bg-3: #111827;
+
+            --card-bg: rgba(15, 23, 42, 0.72);
+            --card-border: rgba(255, 255, 255, 0.08);
+
+            --neon-blue: #38bdf8;
+            --neon-purple: #a855f7;
+            --neon-cyan: #22d3ee;
+            --neon-green: #22c55e;
+            --neon-red: #ef4444;
+
+            --text-main: #f8fafc;
+            --text-soft: #cbd5e1;
+            --text-muted: #94a3b8;
+            --text-error: #f87171;
+
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Vazirmatn', sans-serif;
+            color: var(--text-main);
+            background:
+                radial-gradient(circle at top right, rgba(168, 85, 247, 0.18), transparent 28%),
+                radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.16), transparent 30%),
+                radial-gradient(circle at center, rgba(34, 211, 238, 0.08), transparent 55%),
+                linear-gradient(135deg, var(--bg-1), var(--bg-2) 55%, var(--bg-3));
+            background-attachment: fixed;
+            direction: rtl;
+            text-align: right;
+            overflow-x: hidden;
+        }
+
+        .page-wrapper {
+            width: 100%;
+            min-height: 100vh;
+            padding: 36px 18px 48px;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.06), transparent 35%, rgba(168, 85, 247, 0.05));
+            pointer-events: none;
+        }
+
+        .header {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0 0 8px 0;
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1.3;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            margin: 0;
+            color: var(--text-soft);
+            font-size: 0.98rem;
+            line-height: 1.9;
+        }
+
+        .course-info-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0 30px;
+            padding: 12px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            backdrop-filter: blur(15px);
+        }
+
+        .course-name-display {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+        }
+
+        .form-container {
+            position: relative;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 22px;
+            padding: 26px;
+            margin-bottom: 28px;
+            backdrop-filter: blur(18px);
+        }
+
+        .form-container h3 {
+            margin: 0 0 16px 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--neon-purple), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-fields {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.9rem;
+            color: var(--text-soft);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        input[type="text"], select {
+            padding: 14px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border-radius: 14px;
+            font-size: 0.95rem;
+            transition: all 0.24s ease;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+
+        .btn-add {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 24px;
+            border-radius: 14px;
+            text-decoration: none;
+            color: white;
+            font-weight: 700;
+            border: 1px solid transparent;
+            transition: all 0.28s ease;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(90deg, var(--neon-green), #6ee7b5);
+        }
+        .btn-add:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+            box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28);
+        }
+
+        .table-card {
+            position: relative;
+            z-index: 1;
+            margin-top: 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 22px;
+            overflow: hidden;
+            backdrop-filter: blur(18px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.14), rgba(168, 85, 247, 0.12));
+            color: var(--text-main);
+            padding: 16px 14px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 16px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--text-soft);
+            vertical-align: middle;
+        }
+        
+        tbody td:last-child {
+            white-space: nowrap;
+        }
+
+        .course-name {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .muted {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+        }
+        
+        .student-name {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .status-active { color: var(--neon-green); font-weight: 600; }
+        .status-inactive { color: var(--neon-red); font-weight: 600; }
+
+        .btn-del {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 700;
+            transition: all 0.24s ease;
+            color: var(--neon-red);
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.22);
+        }
+
+        .btn-del:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.08);
+            background: rgba(239, 68, 68, 0.22);
+        }
+
+        .empty-row td {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 24px;
+            font-style: italic;
+        }
+
+        .footer-note {
+            position: relative;
+            z-index: 1;
+            margin-top: 22px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8rem; }
+            h2 { font-size: 1.4rem; }
+            .course-info-bar { flex-direction: column; align-items: flex-start; }
+            .form-fields { grid-template-columns: 1fr; }
+            
+            table, thead, tbody, th, td, tr { display: block; }
+            thead { display: none; }
+            .table-card { overflow: visible; background: transparent; border: none; }
+            
+            tbody tr {
+                margin-bottom: 16px;
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 18px;
+                overflow: hidden;
+                padding: 8px 0;
+            }
+            tbody td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: right;
+                padding: 12px 14px;
+            }
+            tbody td::before {
+                content: attr(data-label);
+                color: var(--text-muted);
+                font-weight: 600;
+                margin-left: 12px;
+                white-space: nowrap;
+            }
+            .actions-cell { text-align: center; }
+            .actions-cell .btn-del { padding: 8px 12px; font-size: 0.8rem; }
+        }
+
+        
+select {
+    
+    appearance: none; 
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2214%22%20viewBox%3D%220%200%2014%2014%22%3E%3Cpath%20fill%3D%22%23f8fafc%22%20d%3D%22M11.3%204.4%22%2F%3E%3Cpath%20fill%3D%22%23cbd5e1%22%20d%3D%22M7%209.3%20L3.7%206.1%202.3%207.5%207%2011.7%2011.7%207.5%2010.3%206.1z%22%2F%3E%3C%2Fsvg%3E'); /* آیکون فلش رو به پایین */
+    background-repeat: no-repeat;
+    background-position: left 16px center;
+    background-size: 14px 14px;
+    padding-right: 36px; 
+    padding-left: 16px;
+}
+
+
+select option {
+    color: var(--text-main); 
+    background-color: var(--bg-2); 
+}
+
+
+select option:checked {
+    background-color: var(--neon-blue);
+    color: var(--text-main);
+}
+
     </style>
 </head>
 <body>
-<div class="card">
-    <h2>مدیریت دانشجویان درس: {{ course.CourseName }}</h2>
-    
-    <form method="post" style="background: #e9ecef; padding: 15px; border-radius: 5px;">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn-add">افزودن دانشجو به این کلاس</button>
-    </form>
+    <div class="page-wrapper">
+        <div class="container">
+            <div class="header">
+                <h1>مدیریت دانشجویان</h1>
+                <p class="subtitle">افزودن، حذف و مشاهده لیست دانشجویان ثبت‌نام شده در کلاس.</p>
+            </div>
 
-    <h3>لیست دانشجویان ثبت‌نام شده:</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>نام و نام خانوادگی</th>
-                <th>نام کاربری</th>
-                <th>شماره دانشجویی</th>
-                <th>وضعیت</th> {# اضافه شده برای نمایش وضعیت #}
-                <th>عملیات</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for en in enrolled_students %}
-            <tr>
-                <td>{{ en.FirstName }} {{ en.LastName }}</td>
-                <td>{{ en.Username }}</td>
-                <td>{{en.StudentNumber}}</td>
-                <td>{{ en.Status }}</td> 
-                <td>
-                    {% if en.UserKey %} 
-                        <a href="{% url 'EduStaffs:remove_student_from_course' course.CourseID en.UserKey %}" class="btn-del" onclick="return confirm('آیا مطمئن هستید؟')">حذف از کلاس</a>
-                    {% else %}
-                        <span>(شناسه دانشجو موجود نیست)</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="4">هیچ دانشجویی در این کلاس ثبت‌نام نکرده است.</td></tr> {# colspan به 4 تغییر کرد چون 4 ستون داریم #}
-            {% endfor %}
-        </tbody>
-    </table>
-    <br>
-    <a href="{% url 'EduStaffs:manage_courses' %}">بازگشت به لیست کلاس‌ها</a>
-</div>
+            <div class="course-info-bar">
+                <div class="course-name-display">
+                    درس: {{ course.CourseName }} (کد: {{ course.CourseCode }})
+                </div>
+                <div>
+                    <a href="{% url 'EduStaffs:manage_courses' %}" class="btn btn-secondary">بازگشت به لیست کلاس‌ها</a>
+                </div>
+            </div>
+
+            <div class="form-container">
+                <h3>افزودن دانشجو به کلاس</h3>
+                <form method="post" id="add-student-form">
+                    {% csrf_token %}
+                    <div class="form-fields">
+                        {# اینجا فقط فیلد مربوط به انتخاب دانشجو را نمایش می‌دهیم #}
+                        <div class="form-group">
+                            <label for="{{ form.student.id_for_label }}">انتخاب دانشجو:</label>
+                            {{ form.student }}
+                        </div>
+                        {# دکمه Submit را جداگانه استایل می‌دهیم #}
+                        <div>
+                            <button type="submit" class="btn-add">
+                                <span>➕</span>
+                                <span>افزودن دانشجو</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ردیف</th>
+                            <th>نام و نام خانوادگی</th>
+                            <th>نام کاربری</th>
+                            <th>شماره دانشجویی</th>
+                            <th>وضعیت</th>
+                            <th>عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for en in enrolled_students %}
+                        <tr>
+                            <td data-label="ردیف">{{ forloop.counter }}</td>
+                            <td data-label="نام و نام خانوادگی">
+                                <span class="student-name">{{ en.FirstName }} {{ en.LastName }}</span>
+                            </td>
+                            <td data-label="نام کاربری">{{ en.Username }}</td>
+                            <td data-label="شماره دانشجویی">{{ en.StudentNumber }}</td>
+                            <td data-label="وضعیت">
+                                {% if en.Status == 'Active' %}
+                                    <span class="status-active">فعال</span>
+                                {% elif en.Status == 'Inactive' %}
+                                    <span class="status-inactive">غیرفعال</span>
+                                {% else %}
+                                    <span class="muted">{{ en.Status|default:"نامشخص" }}</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="عملیات" class="actions-cell">
+                                {% if en.UserKey %}
+                                    <a href="{% url 'EduStaffs:remove_student_from_course' course.CourseID en.UserKey %}" class="btn-del" onclick="return confirm('آیا مطمئن هستید که می‌خواهید این دانشجو را از کلاس حذف کنید؟')">حذف</a>
+                                {% else %}
+                                    <span class="muted">(شناسه نامعتبر)</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr class="empty-row">
+                            <td colspan="6">هیچ دانشجویی در این کلاس ثبت‌نام نکرده است.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="footer-note">
+                سامانه مدیریت آموزشی هوشمند
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        document.getElementById('add-student-form').addEventListener('submit', function(event) {
+            
+            console.log('Form submitted');
+        });
+    </script>
 </body>
 </html>

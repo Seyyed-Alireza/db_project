@@ -1,138 +1,426 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مدیریت کلاس‌ها</title>
+
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+
     <style>
+        :root {
+            --bg-1: #050816;
+            --bg-2: #0f172a;
+            --bg-3: #111827;
+
+            --card-bg: rgba(15, 23, 42, 0.72);
+            --card-border: rgba(255, 255, 255, 0.08);
+
+            --neon-blue: #38bdf8;
+            --neon-purple: #a855f7;
+            --neon-cyan: #22d3ee;
+            --neon-green: #22c55e;
+            --neon-amber: #f59e0b;
+            --neon-pink: #f472b6;
+
+            --text-main: #f8fafc;
+            --text-soft: #cbd5e1;
+            --text-muted: #94a3b8;
+
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Tahoma, sans-serif;
-            direction: rtl;
-            background: #f5f7fa;
             margin: 0;
-            padding: 30px;
+            min-height: 100vh;
+            font-family: 'Vazirmatn', sans-serif;
+            color: var(--text-main);
+            background:
+                radial-gradient(circle at top right, rgba(168, 85, 247, 0.18), transparent 28%),
+                radial-gradient(circle at bottom left, rgba(56, 189, 248, 0.16), transparent 30%),
+                radial-gradient(circle at center, rgba(34, 211, 238, 0.08), transparent 55%),
+                linear-gradient(135deg, var(--bg-1), var(--bg-2) 55%, var(--bg-3));
+            background-attachment: fixed;
+            direction: rtl;
+            text-align: right;
+            overflow-x: hidden;
+        }
+
+        .page-wrapper {
+            width: 100%;
+            min-height: 100vh;
+            padding: 36px 18px 48px;
         }
 
         .container {
-            max-width: 1000px;
-            margin: auto;
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            max-width: 1240px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            position: relative;
+            overflow: hidden;
         }
 
-        h1 { margin-bottom: 10px; color: #222; }
-        p  { color: #666; }
+        .container::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.06), transparent 35%, rgba(168, 85, 247, 0.05));
+            pointer-events: none;
+        }
 
-        .top-actions { margin: 20px 0; }
+        .header {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1.3;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            margin: 0;
+            color: var(--text-soft);
+            font-size: 0.98rem;
+            line-height: 1.9;
+        }
+
+        .department-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            width: fit-content;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--neon-cyan);
+            font-weight: 600;
+            box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.06) inset;
+        }
+
+        .top-actions {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 26px 0 18px;
+        }
 
         .btn {
-            display: inline-block;
-            padding: 10px 18px;
-            background: #0d6efd;
-            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 18px;
+            border-radius: 14px;
             text-decoration: none;
-            border-radius: 8px;
-            margin-left: 8px;
+            color: white;
+            font-weight: 700;
+            border: 1px solid transparent;
+            transition: all 0.28s ease;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+            user-select: none;
+            white-space: nowrap;
         }
-        .btn:hover { background: #0b5ed7; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+            box-shadow: 0 16px 30px rgba(0, 0, 0, 0.28);
+        }
+
+        .table-card {
+            position: relative;
+            z-index: 1;
+            margin-top: 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 22px;
+            overflow: hidden;
+            backdrop-filter: blur(18px);
+        }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
         }
 
-        table th, table td {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
+        thead th {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.14), rgba(168, 85, 247, 0.12));
+            color: var(--text-main);
+            padding: 16px 14px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             text-align: center;
+            white-space: nowrap;
         }
 
-        table th { background: #f1f3f5; }
+        tbody td {
+            padding: 16px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            text-align: center;
+            color: var(--text-soft);
+            vertical-align: middle;
+        }
 
-        .empty {
-            margin-top: 20px;
-            padding: 20px;
-            background: #fff3cd;
-            border-radius: 8px;
-            color: #856404;
+        tbody tr {
+            transition: background 0.22s ease, transform 0.22s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .course-name {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .muted {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+        }
+
+        .teacher-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .teacher-name {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
         }
 
         .action-link {
-            color: #0d6efd;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            border-radius: 12px;
             text-decoration: none;
-            font-weight: bold;
+            font-size: 0.88rem;
+            font-weight: 700;
+            transition: all 0.24s ease;
+            border: 1px solid transparent;
         }
-        .action-link:hover { text-decoration: underline; }
 
-        .actions a { margin: 0 6px; }
-        .muted { color: #888; font-size: 14px; }
+        .link-blue {
+            color: #bfdbfe;
+            background: rgba(59, 130, 246, 0.12);
+            border-color: rgba(59, 130, 246, 0.22);
+        }
+
+        .link-green {
+            color: #bbf7d0;
+            background: rgba(34, 197, 94, 0.12);
+            border-color: rgba(34, 197, 94, 0.22);
+        }
+
+        .link-purple {
+            color: #e9d5ff;
+            background: rgba(168, 85, 247, 0.12);
+            border-color: rgba(168, 85, 247, 0.22);
+        }
+
+        .action-link:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.08);
+        }
+
+        .empty {
+            position: relative;
+            z-index: 1;
+            margin-top: 18px;
+            padding: 24px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(255, 255, 255, 0.04));
+            border: 1px solid rgba(245, 158, 11, 0.22);
+            color: #fde68a;
+            font-weight: 600;
+        }
+
+        .footer-note {
+            position: relative;
+            z-index: 1;
+            margin-top: 22px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                padding: 24px 18px;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            thead {
+                display: none;
+            }
+
+            .table-card {
+                overflow: visible;
+                background: transparent;
+                border: none;
+            }
+
+            tbody tr {
+                margin-bottom: 16px;
+                background: rgba(255, 255, 255, 0.04);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 18px;
+                overflow: hidden;
+                padding: 8px 0;
+            }
+
+            tbody td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: right;
+                padding: 12px 14px;
+            }
+
+            tbody td::before {
+                content: attr(data-label);
+                color: var(--text-muted);
+                font-weight: 600;
+                margin-left: 12px;
+                white-space: nowrap;
+            }
+
+            .actions {
+                justify-content: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1>مدیریت کلاس‌ها</h1>
-    <p>دپارتمان: {{ department.DepartmentName }}</p>
+    <div class="page-wrapper">
+        <div class="container">
+            <div class="header">
+                <h1>مدیریت کلاس‌ها</h1>
+                <p class="subtitle">در این بخش می‌توانید کلاس‌های دپارتمان را مشاهده، بررسی و به ابزارهای مدیریتی مرتبط دسترسی پیدا کنید.</p>
+                <div class="department-chip">
+                    <span>دانشکده:</span>
+                    <span>{{ department.DepartmentName }}</span>
+                </div>
+            </div>
 
-    <div class="top-actions">
-        <a href="{% url 'EduStaffs:course_create' %}" class="btn">+ ایجاد کلاس جدید</a>
-        <a href="{% url 'EduStaffs:dashboard' %}" class="btn">بازگشت به داشبورد</a>
-    </div>
+            <div class="top-actions">
+                <a href="{% url 'EduStaffs:course_create' %}" class="btn btn-primary">+ ایجاد کلاس جدید</a>
+                <a href="{% url 'EduStaffs:dashboard' %}" class="btn btn-secondary">بازگشت به داشبورد</a>
+            </div>
 
-    {% if courses %}
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>نام درس</th>
-                    <th>کد درس</th>
-                    <th>واحد</th>
-                    <th>استاد</th>
-                    <th>عملیات</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for c in courses %}
-                    <tr>
-                        <td>{{ forloop.counter }}</td>
-                        <td>{{ c.CourseName }}</td>
-                        <td>{{ c.CourseCode }}</td>
-                        <td>{{ c.Units }}</td>
-                        <td>{{ c.Units }}
-                            {% if c.TeacherKey %}
-                                {{ c.TeacherKey.UserKey.FirstName }} {{ c.TeacherKey.UserKey.LastName }}
-                                {% if c.TeacherKey.UserKey.Username %}
-                                    <span class="muted">({{ c.TeacherKey.UserKey.Username }})</span>
-                                {% endif %}
-                            {% else %}
-                                <span class="muted">تعیین نشده</span>
-                            {% endif %}
-                        </td>
-                        <td class="actions">
-                            {# فعلاً لینک جزئیات را می‌گذاریم (در مرحله بعد view می‌سازیم) #}
-                            <a class="action-link" href="{% url 'Courses:course_page' c.CourseID %}">ورود به صفحه درس</a>
+            {% if courses %}
+                <div class="table-card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>نام درس</th>
+                                <th>کد درس</th>
+                                <th>واحد</th>
+                                <th>استاد</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for c in courses %}
+                                <tr>
+                                    <td data-label="#"> {{ forloop.counter }} </td>
+                                    <td data-label="نام درس" class="course-name">{{ c.CourseName }}</td>
+                                    <td data-label="کد درس">{{ c.CourseCode }}</td>
+                                    <td data-label="واحد">{{ c.Units }}</td>
+                                    <td data-label="استاد">
+                                        <div class="teacher-info">
+                                            {% if c.TeacherKey %}
+                                                <span class="teacher-name">{{ c.TeacherKey.UserKey.FirstName }} {{ c.TeacherKey.UserKey.LastName }}</span>
+                                                {% if c.TeacherKey.UserKey.Username %}
+                                                    <span class="muted">({{ c.TeacherKey.UserKey.Username }})</span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="muted">تعیین نشده</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td data-label="عملیات">
+                                        <div class="actions">
+                                            <a class="action-link link-blue" href="{% url 'Courses:course_page' c.CourseID %}">ورود به صفحه درس</a>
+                                            <a class="action-link link-green" href="{% url 'EduStaffs:manage_enrollments' c.CourseID %}">مدیریت دانشجویان</a>
+                                            <a class="action-link link-purple" href="{% url 'EduStaffs:assign_teacher_to_course' c.CourseID %}">اختصاص استاد</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty">
+                    هنوز کلاسی برای این دپارتمان ثبت نشده است.
+                </div>
+            {% endif %}
 
-                            {# جای رزرو برای بعد: ویرایش/حذف #}
-                            <span class="muted">|</span>
-                            <a class="action-link" href="{% url 'EduStaffs:manage_enrollments' c.CourseID %}" style="color: #28a745;">مدیریت دانشجویان</a>
-                            <a href="{% url 'EduStaffs:assign_teacher_to_course' c.CourseID %}">
-                                اختصاص استاد
-                            </a>
-                            <span class="muted">|</span>
-                            <span class="muted">ویرایش (بعداً)</span>
-                            <span class="muted">|</span>
-                            <span class="muted">حذف (بعداً)</span>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <div class="empty">
-            هنوز کلاسی برای این دپارتمان ثبت نشده است.
+            <div class="footer-note">
+                سامانه مدیریت آموزشی هوشمند
+            </div>
         </div>
-    {% endif %}
-</div>
+    </div>
 </body>
 </html>

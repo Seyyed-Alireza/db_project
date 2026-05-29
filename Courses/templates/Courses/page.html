@@ -5,113 +5,298 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'base-style/base.css' %}?v=3">
-    <link rel="stylesheet" href="{% static 'Courses/style/Course.css' %}?v=3">
-    <title>صفحه کلاس</title>
+    <title>مدیریت کلاس | {{ course.CourseName }}</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.4);
+            --danger: #ef4444;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+        }
+
+        body {
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        
+        header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        #container-center {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            background: linear-gradient(to left, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+        }
+
+        
+        .btn {
+            cursor: pointer;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0ea5e9, #6366f1);
+            color: white;
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px var(--accent-glow);
+        }
+
+        .btn--secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #94a3b8;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn--secondary:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        
+        .exams {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .exam-box {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 25px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .exam-box:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .exam-box p {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+            color: var(--accent);
+        }
+
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .status-inprogress { background: rgba(34, 197, 94, 0.1); color: var(--success); border: 1px solid var(--success); }
+        .status-ended { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger); }
+        .status-waiting { background: rgba(245, 158, 11, 0.1); color: var(--warning); border: 1px solid var(--warning); }
+
+        .exam-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        
+        #form-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 90%;
+            max-width: 500px;
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 24px;
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            z-index: 1000;
+            display: none; 
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        #form-container.active {
+            display: block;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .form-field {
+            margin-bottom: 15px;
+        }
+
+        .form-field label {
+            display: block;
+            margin-bottom: 8px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .form-field input, .form-field textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: white;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .form-field input:focus {
+            border-color: var(--accent);
+            background: rgba(0,0,0,0.4);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+            display: none;
+        }
+
+    </style>
 </head>
 <body>
+    <div class="overlay" id="overlay"></div>
+
     <header>
-        <button type="button" class="btn"
-                onclick="location.href='{% url 'main:mainpage' %}'">
+        <button type="button" class="btn btn--secondary" onclick="location.href='{% url 'main:mainpage' %}'">
             صفحه اصلی
         </button>
+        <div style="font-weight: bold; color: var(--accent);">سیستم مدیریت هوشمند</div>
     </header>
+
     <div id="container-center">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+            <h1>کلاس {{ course.CourseName }}</h1>
+            {% if role == "teacher" %}
+                <button id="show-form-btn" type="button" class="btn btn-primary">
+                    <span>+</span> ایجاد آزمون جدید
+                </button>
+            {% endif %}
+        </div>
+
+        <h2 style="color: #94a3b8; font-size: 1.2rem; margin-bottom: 20px;">امتحانات برگزار شده و پیش‌رو</h2>
         
-        <h1>کلاس {{ course.CourseName }}</h1>
-        {% if role == "teacher" %}
-            <button id="show-form-btn" type="button" class="btn">ایجاد آزمون جدید</button>
-        {% endif %}
-        <h2> امتحانات</h2>
         <div class="exams" id="exams-container">
             {% if exams_with_status %}
                 {% for exam, status, id in exams_with_status %}
-                    <div class="exam-bow-wrapper">
-                        <div class="exam-box" id="exam-box-{{ exam.pk }}">
-                            <!-- <a href="{% url 'Exams:exam_page' course.pk exam.pk %}">{{ exam.Title }}</a> -->
-                            <p>{{ exam.Title }}</p>
-                            {% if status == "inprogress" %}
-                                درحال برگزاری
-                            {% elif status == "ended" %}
-                                تمام شده
-                            {% elif status == "waiting" %}
-                                منتظر شروع
-                            {% else %}
-                                وضعیت نامعلوم
-                            {% endif %}
-                            <br>
-                            <div class="exam-options">
-                                <button type="button" class="btn" id="enter-exam-{{ exam.pk }}"
-                                    onclick="location.href='{% url 'Exams:exam_page' course.pk exam.pk %}'"
-                                >
-                                    ورود به آزمون
-                                </button>
-                                {% if role == "teacher" %}
-                                    <button type="button" class="btn"
-                                        onclick="location.href='{% url 'Exams:edit_exam' course.pk exam.pk %}'"
-                                    >
-                                        ویرایش آزمون
-                                    </button>
-                                    <button type="button" class="btn btn--secondary"
-                                        onclick="deleteExam({{ course.pk }}, {{ exam.pk }}, {{ exam.pk }})"
-                                    >
-                                        حذف آزمون
-                                    </button>
-                                {% endif %}
-                            </div>
+                    <div class="exam-box" id="exam-box-{{ exam.pk }}">
+                        <p>{{ exam.Title }}</p>
+                        
+                        {% if status == "inprogress" %}
+                            <span class="status-badge status-inprogress">● درحال برگزاری</span>
+                        {% elif status == "ended" %}
+                            <span class="status-badge status-ended">● تمام شده</span>
+                        {% elif status == "waiting" %}
+                            <span class="status-badge status-waiting">● منتظر شروع</span>
+                        {% else %}
+                            <span class="status-badge btn--secondary">وضعیت نامعلوم</span>
+                        {% endif %}
 
+                        <div class="exam-options">
+                            <button type="button" class="btn btn-primary" onclick="location.href='{% url 'Exams:exam_page' course.pk exam.pk %}'">
+                                ورود به پنل آزمون
+                            </button>
+                            
+                            {% if role == "teacher" %}
+                                <div style="display: flex; gap: 8px;">
+                                    <button type="button" class="btn btn--secondary" style="flex: 1;" onclick="location.href='{% url 'Exams:edit_exam' course.pk exam.pk %}'">
+                                        ویرایش
+                                    </button>
+                                    <button type="button" class="btn btn--secondary" style="flex: 1;" onclick="deleteExam({{ course.pk }}, {{ exam.pk }}, {{ exam.pk }})">
+                                        حذف
+                                    </button>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 {% endfor %}
             {% else %}
-                امتحانی وجود ندارد
+                <div style="grid-column: 1/-1; text-align: center; padding: 50px; background: var(--card-bg); border-radius: 20px; color: #64748b;">
+                    هنوز امتحانی برای این درس تعریف نشده است.
+                </div>
             {% endif %}
         </div>
     </div>
 
+    
     <div id="form-container">
-        <form id="exam-form"  method="post" action="{% url 'Exams:create_exam' course.pk %}" novalidate autocomplete="off">
+        <h3 style="margin-top: 0; color: var(--accent);">تعریف آزمون جدید</h3>
+        <form id="exam-form" method="post" action="{% url 'Exams:create_exam' course.pk %}" novalidate autocomplete="off">
             {% csrf_token %}
-            
-            <div class="form-field">
-                <label for="id_title">{{ form.title.label }}</label>
-                {{ form.title }}
-                <span class="error-span" id="title-error"></span>
-            </div>
-
-            <div class="form-field">
-                <label for="id_description">{{ form.description.label }}</label>
-                {{ form.description }}
-                <span class="error-span" id="description-error"></span>
-            </div>
-
-            <div class="form-field">
-                <label for="id_start_date">{{ form.start_date.label }}</label>
-                {{ form.start_date }}
-                <span class="error-span" id="start_date-error"></span>
-            </div>
-
-            <div class="form-field">
-                <label for="id_start_time">{{ form.start_time.label }}</label>
-                {{ form.start_time }}
-                <span class="error-span" id="start_time-error"></span>
-            </div>
-
-            <div class="form-field">
-                <label for="id_end_date">{{ form.end_date.label }}</label>
-                {{ form.end_date }}
-                <span class="error-span" id="end_date-error"></span>
-            </div>
-
-            <div class="form-field">
-                <label for="id_end_time">{{ form.end_time.label }}</label>
-                {{ form.end_time }}
-                <span class="error-span" id="end_time-error"></span>
-            </div>
+            {% for field in form %}
+                <div class="form-field">
+                    <label>{{ field.label }}</label>
+                    {{ field }}
+                    <span class="error-span" id="{{ field.name }}-error"></span>
+                </div>
+            {% endfor %}
             
             <div class="form-actions">
-                <button type="submit" id="submit-btn" class="btn">ثبت آزمون</button>
-                <button type="button" id="cancel-btn" class="btn btn--secondary">انصراف</button>
+                <button type="submit" id="submit-btn" class="btn btn-primary" style="flex: 2;">ثبت آزمون</button>
+                <button type="button" id="cancel-btn" class="btn btn--secondary" style="flex: 1;">انصراف</button>
             </div>
         </form>
     </div>
@@ -119,10 +304,28 @@
     <script>
         window.examsStatus = JSON.parse('{{ for_js|escapejs }}');
         window.course_id = {{ course.pk }};
+
+        
+        const showBtn = document.getElementById('show-form-btn');
+        const formCont = document.getElementById('form-container');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const overlay = document.getElementById('overlay');
+
+        if(showBtn) {
+            showBtn.onclick = () => {
+                formCont.classList.add('active');
+                overlay.style.display = 'block';
+            }
+        }
+
+        cancelBtn.onclick = overlay.onclick = () => {
+            formCont.classList.remove('active');
+            overlay.style.display = 'none';
+        }
     </script>
-    <script src="{% static 'base-js/base.js' %}" charset="utf-8"></script>
+    <script src="{% static 'base-js/base.js' %}"></script>
     {% if role == "teacher" %}
-        <script src="{% static 'Courses/Course.js' %}" charset="utf-8"></script>
+        <script src="{% static 'Courses/Course.js' %}"></script>
     {% endif %}
 </body>
 </html>

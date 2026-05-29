@@ -1,26 +1,297 @@
-{% extends "main/index.html" %} 
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت آموزش | {{ department.DepartmentName }}</title>
 
-{% block content %}
-<div class="container" style="direction: rtl; text-align: right; padding: 20px;">
-    <h1>پنل مسئول آموزش</h1>
-    <p>دانشکده: {{ department.DepartmentName }}</p>
 
-    <hr>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
 
-    <h3>عملیات مدیریتی</h3>
-    <ul style="list-style: none; padding: 20px;">
-        <li style="margin-bottom: 20px;">
-            <a href="{% url 'EduStaffs:course_create' %}" class="btn btn-primary">ایجاد کلاس</a>
-        </li>
-        <li style="margin-bottom: 20px;">
-            <a href="{% url 'EduStaffs:manage_courses' %}" class="btn btn-info">مدیریت کلاس‌ها</a>
-        </li>
-        <li style="margin-bottom: 20px;">
-            <a href="{% url 'EduStaffs:manage_courses' %}" class="btn btn-warning">اختصاص دانشجو به کلاس</a>
-        </li>
-        <li style="margin-bottom: 20px;">
-            <a href="{% url 'EduStaffs:manage_courses' %}" class="btn btn-success">اختصاص استاد به کلاس</a>
-        </li>
-    </ul>
-</div>
-{% endblock %}
+    <style>
+        :root {
+            --bg-color: #0b0e14;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --neon-blue: #00d2ff;
+            --neon-purple: #9d50bb;
+            --neon-yellow: #facc15; 
+            --text-main: #ffffff;
+            --text-dim: #b0b3b8;
+            --glass-blur: blur(20px);
+            --text-error: #f87171; 
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Vazirmatn', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(157, 80, 187, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 210, 255, 0.1) 0%, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column; 
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .dashboard-container {
+            width: 100%;
+            max-width: 1000px;
+            padding: 40px 20px;
+            flex-grow: 1; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .header-section h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .dept-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 20px;
+            border-radius: 50px;
+            border: 1px solid var(--card-border);
+            color: var(--neon-blue);
+            font-weight: 500;
+            font-size: 0.95rem;
+            backdrop-filter: var(--glass-blur);
+        }
+
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+            margin-bottom: 40px; 
+        }
+
+        .action-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 35px 25px;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: var(--glass-blur);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+            transform: translateX(-100%);
+            transition: 0.6s;
+        }
+
+        .action-card:hover::before {
+            transform: translateX(100%);
+        }
+
+        .action-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+
+        .icon-box {
+            width: 65px;
+            height: 65px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            transition: 0.3s;
+        }
+
+
+        .create { --c: var(--neon-blue); }
+        .manage { --c: #f0abfc; } 
+        .assign-std { --c: #fbbf24; } 
+        .assign-prof { --c: #4ade80; }
+
+        .action-card.create .icon-box { background: rgba(0, 210, 255, 0.1); color: var(--neon-blue); }
+        .action-card.manage .icon-box { background: rgba(240, 171, 252, 0.1); color: #f0abfc; }
+        .action-card.assign-std .icon-box { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
+        .action-card.assign-prof .icon-box { background: rgba(74, 222, 128, 0.1); color: #4ade80; }
+
+        .action-card h3 {
+            color: var(--text-main);
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .action-card p {
+            color: var(--text-dim);
+            font-size: 0.85rem;
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+
+        
+        .logout-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 28px;
+            border-radius: 16px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(255, 50, 50, 0.3), /* Reddish shadow */
+                        0 0 0 4px rgba(255, 50, 50, 0.1);
+            background: linear-gradient(110deg, var(--neon-yellow) 40%, #f9a825 70%, #fbcb00 100%); /* Yellow gradient */
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            color: var(--bg-color); 
+            margin-top: 20px; 
+        }
+
+        .logout-button::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(90deg, rgba(255, 50, 50, 0.4) 0%, rgba(255, 255, 255, 0) 100%); /* Reddish glow */
+            z-index: 0;
+            border-radius: 16px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .logout-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(255, 50, 50, 0.4),
+                        0 0 0 6px rgba(255, 50, 50, 0.15);
+        }
+
+        .logout-button:hover::before {
+            opacity: 1;
+        }
+
+        .logout-button:active {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(255, 50, 50, 0.3),
+                        0 0 0 3px rgba(255, 50, 50, 0.1);
+        }
+
+
+        .footer-note {
+            text-align: center;
+            margin-top: auto; 
+            padding-bottom: 20px; 
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            opacity: 0.6;
+        }
+
+
+        @media (max-width: 600px) {
+            .header-section h1 { font-size: 1.8rem; }
+            .actions-grid { grid-template-columns: 1fr; }
+            .logout-button { font-size: 1rem; padding: 12px 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+
+        <header class="header-section">
+            <h1>پنل مسئول آموزش</h1>
+            <div class="dept-badge">
+                <span>دانشکده: {{ department.DepartmentName }}</span>
+            </div>
+        </header>
+
+
+        <div class="actions-grid">
+
+            <a href="{% url 'EduStaffs:course_create' %}" class="action-card create">
+                <div class="icon-box">➕</div>
+                <h3>ایجاد کلاس جدید</h3>
+                <p>تعریف دروس جدید و زمان‌بندی واحدها</p>
+            </a>
+
+            <a href="{% url 'EduStaffs:manage_courses' %}" class="action-card manage">
+                <div class="icon-box">⚙️</div>
+                <h3>مدیریت کلاس‌ها</h3>
+                <p>ویرایش، حذف و مشاهده وضعیت دروس</p>
+            </a>
+
+            {# فرض می‌کنیم تخصیص دانشجو هم نیاز به انتخاب کلاس دارد #}
+            <a href="{% url 'EduStaffs:manage_courses' %}" class="action-card assign-std">
+                <div class="icon-box">🎓</div>
+                <h3>تخصیص دانشجو</h3>
+                <p>ثبت‌نام و مدیریت لیست دانشجویان</p>
+            </a>
+
+            {# تغییر مهم: هدایت به صفحه مدیریت کلاس‌ها برای انتخاب کلاس #}
+            {# اگر assign_teacher_to_course نیاز به course_id دارد، این لینک باید به صفحه‌ای برود که بتوان course_id را دریافت کرد #}
+            <a href="{% url 'EduStaffs:manage_courses' %}" class="action-card assign-prof">
+                <div class="icon-box">👨‍🏫</div>
+                <h3>تخصیص استاد</h3>
+                <p>انتخاب مدرس و مدیریت کادر علمی</p>
+            </a>
+
+        </div>
+        {# Logout Button added here #}
+        <div style="text-align: center;">
+            {# اگر Users:login صفحه لاگین است، از آن استفاده کنید. در غیر این صورت، URL مستقیم را جایگزین کنید. #}
+            <a href="{% url 'Users:login' %}" class="logout-button">
+                خروج از داشبورد
+            </a>
+        </div>
+
+        <div class="footer-note">
+            سامانه مدیریت آموزشی هوشمند | نسخه ۵.۵
+        </div>
+    </div>
+
+</body>
+</html>
