@@ -30,5 +30,6 @@ urlpatterns = [
     path('log/', include('TabSwitchLogs.urls')),
     path('log/', include('ResolutionLogs.urls')),
     path('edustaff/', include('EduStaffs.urls')),
+    path('fraud/', include('FraudFlags.urls')),
 ]
 

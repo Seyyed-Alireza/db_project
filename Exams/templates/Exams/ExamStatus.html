@@ -5,51 +5,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'base-style/base.css' %}">
-    <link rel="stylesheet" href="{% static 'Exams/style/status.css' %}">
-    <title>وضعیت آزمون</title>
+    <title>وضعیت پیشرفته آزمون</title>
+    <style>
+       
+        body {
+            background: radial-gradient(circle at top right, #1e293b, #0f172a);
+            color: #f1f5f9;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        
+        .dashboard-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header-section h1 {
+            font-size: 1.8rem;
+            background: linear-gradient(to left, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+
+       
+        .status-header {
+            display: flex;
+            padding: 15px 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .status-card {
+            display: flex;
+            align-items: center;
+            padding: 20px 25px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            margin-bottom: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+        }
+
+        .status-card:hover {
+            background: rgba(255, 255, 255, 0.07);
+            transform: translateY(-3px) scale(1.01);
+            border-color: rgba(56, 189, 248, 0.3);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        
+        .col-std { flex: 2; text-align: right; }
+        .col-count { flex: 1; text-align: center; }
+        .col-status { flex: 1.5; text-align: center; }
+        .col-action { flex: 1.5; text-align: left; }
+
+        
+        .btn-glass {
+            display: inline-block;
+            padding: 10px 22px;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(99, 102, 241, 0.2));
+            color: #38bdf8;
+            text-decoration: none;
+            border-radius: 12px;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn-glass:hover {
+            background: linear-gradient(135deg, #38bdf8, #6366f1);
+            color: white;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+        }
+
+        
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            background: rgba(0, 0, 0, 0.3);
+            text-transform: uppercase;
+        }
+
+        .student-id {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #e2e8f0;
+            letter-spacing: 1px;
+        }
+
+        
+        @media (max-width: 768px) {
+            .status-header { display: none; }
+            .status-card { flex-direction: column; text-align: center; gap: 15px; }
+            .col-std, .col-count, .col-status, .col-action { text-align: center; }
+        }
+    </style>
 </head>
 <body>
-    <header></header>
-    <div id="container">
-        <table id="status-table">
-            <caption class="table-caption">وضعیت شرکت در آزمون</caption>
-            <thead>
-                <tr class="table-row">
-                    <th class="table-head">
-                        شماره دانشجویی
-                    </th>
-                    <th class="table-head">
-                        تعداد دفعات شرکت
-                    </th>
-                    <th class="table-head">
-                        وضعیت تقلب
-                    </th>
-                </tr>
-            </thead>
 
-            <tbody>
-                {% for student in students %}
-                    <tr class="table-row">
-                        <td class="table-data">
-                            {{ student.student_number }}
-                        </td>
-                        <td class="table-data" >
-                            {{ student.count }}
-                        </td>
-                        <td class="table-data" style="color: {{ student.fraud_color }}; font-weight: bold;">
-                           {{ student.fraud_status }}
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr class="table-row">
-                        <td colspan="3" class="table-data" style="text-align: center; padding: 20px;">
-                            هنوز داده‌ای ثبت نشده است.
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="dashboard-container">
+        <div class="header-section">
+            <h1>وضعیت هوشمند شرکت در آزمون</h1>
+        </div>
+
+        
+        <div class="status-header">
+            <div class="col-std">شماره دانشجویی</div>
+            <div class="col-count">تعداد تلاش</div>
+            <div class="col-status">سطح ریسک (تقلب)</div>
+            <div class="col-action">گزارش کامل</div>
+        </div>
+
+        
+        {% for student in students %}
+            <div class="status-card">
+                <div class="col-std">
+                    <span class="student-id">{{ student.student_number }}</span>
+                </div>
+                <div class="col-count">
+                    <span style="color: #94a3b8;">{{ student.count }} بار</span>
+                </div>
+                <div class="col-status">
+                    <span class="badge" style="color: {{ student.fraud_color }}; border: 1px solid {{ student.fraud_color }};">
+                        ● {{ student.fraud_status }}
+                    </span>
+                </div>
+                <div class="col-action">
+                    <a href="{% url 'FraudFlags:behavior_diagram' exam_id=request.resolver_match.kwargs.exam_id student_number=student.student_number %}" class="btn-glass">
+                        تحلیل رفتار
+                    </a>
+                </div>
+            </div>
+        {% empty %}
+            <div style="text-align: center; padding: 50px; color: #64748b;">
+                داده‌ای برای نمایش یافت نشد.
+            </div>
+        {% endfor %}
     </div>
+
 </body>
 </html>

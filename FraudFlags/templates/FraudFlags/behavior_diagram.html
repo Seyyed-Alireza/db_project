@@ -1,0 +1,526 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مانیتورینگ رفتار دانشجو</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #4e73df;
+            --danger: #e74a3b;
+            --warning: #f6c23e;
+            --info: #36b9cc;
+            --dark-bg: #f4f7f6;
+            --text: #1f2937;
+            --muted: #6b7280;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            color: var(--text);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 22px;
+            border: 1px solid rgba(0,0,0,0.04);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .header-gradient {
+            background: radial-gradient(1200px circle at 100% 0%, rgba(255,255,255,0.18), transparent 45%),
+                        linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+            color: rgb(77, 75, 75);
+            padding: 1.5rem 1.5rem;
+        }
+
+        .subtle {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.95rem;
+        }
+
+        
+        .kpi {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 18px;
+            padding: 14px 16px;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+        }
+        .kpi .label { color: var(--muted); font-size: 0.85rem; }
+        .kpi .value { font-weight: 800; font-size: 1.25rem; margin-top: 4px; }
+        .kpi .icon {
+            width: 40px; height: 40px;
+            display: grid; place-items: center;
+            border-radius: 12px;
+            background: rgba(78,115,223,0.12);
+            color: var(--primary);
+        }
+
+        
+        .filter-wrapper {
+            background: #fff;
+            padding: 10px;
+            border-radius: 50px;
+            display: inline-flex;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+            gap: 6px;
+        }
+
+        .btn-check:checked + .btn-filter {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 8px 18px rgba(78, 115, 223, 0.28);
+            transform: translateY(-1px);
+        }
+
+        .btn-filter {
+            border: none;
+            border-radius: 50px;
+            padding: 8px 18px;
+            transition: all 0.25s ease;
+            font-weight: 600;
+            color: #345ea2;
+            background: transparent;
+        }
+        .btn-filter:hover { background: rgba(78,115,223,0.08); }
+
+        
+        .control-chip {
+            background: #fff;
+            border-radius: 16px;
+            padding: 10px 12px;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+        }
+        .control-chip input, .control-chip select {
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+            color: var(--text);
+        }
+
+        
+        .chart-shell {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .timeline-container {
+            max-height: 520px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .event-card {
+            border-left: 4px solid #ddd;
+            margin-bottom: 12px;
+            padding: 14px 14px;
+            background: white;
+            border-radius: 14px;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            position: relative;
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .event-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(0,0,0,0.06);
+        }
+
+        .event-card[data-type="تغییر تب"] { border-left-color: var(--danger); }
+        .event-card[data-type="تغییر سایز پنجره"] { border-left-color: var(--warning); }
+        .event-card[data-type="تغییر IP"] { border-left-color: var(--info); }
+
+        
+        .event-card.active {
+            outline: 3px solid rgba(78,115,223,0.25);
+            box-shadow: 0 14px 30px rgba(78,115,223,0.16);
+            transform: translateY(-2px);
+        }
+
+        .time-badge {
+            font-size: 0.78rem;
+            background: #eef2ff;
+            padding: 4px 10px;
+            border-radius: 999px;
+            color: #8e2d7e;
+            font-weight: 700;
+        }
+
+        .muted { color: var(--muted); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.35s ease forwards; }
+
+        .timeline-container::-webkit-scrollbar { width: 6px; }
+        .timeline-container::-webkit-scrollbar-thumb { background: #cfd6e4; border-radius: 10px; }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #fff; }
+            .glass-card, .chart-shell, .kpi { box-shadow: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <div class="card glass-card fade-in">
+        <div class="header-gradient">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                <div>
+                    <h3 class="mb-1"><i class="fas fa-user-shield me-2"></i> مانیتورینگ رفتار دانشجویی</h3>
+                    <div class="subtle">گزارش جامع وقایع حین آزمون</div>
+                </div>
+                <div class="text-end">
+                    <span class="d-block h5 mb-0">{{ student.UserKey.get_full_name }}</span>
+                    <small class="subtle">کد دانشجو: {{ student.StudentNumber }}</small>
+                </div>
+            </div>
+
+            
+            <div class="row g-3 mt-3">
+                <div class="col-md-4">
+                    <div class="kpi d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="label">تعداد کل وقایع</div>
+                            <div class="value" id="kpiTotal">0</div>
+                        </div>
+                        <div class="icon"><i class="fa-solid fa-list-check"></i></div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="kpi d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="label">آخرین رویداد</div>
+                            <div class="value" id="kpiLast">—</div>
+                        </div>
+                        <div class="icon"><i class="fa-regular fa-clock"></i></div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="kpi d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="label">بازه زمانی ثبت</div>
+                            <div class="value" id="kpiRange">—</div>
+                        </div>
+                        <div class="icon"><i class="fa-solid fa-timeline"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body p-4">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3 no-print">
+                <div class="filter-wrapper">
+                    <input type="radio" class="btn-check" name="filter" id="all" checked>
+                    <label class="btn btn-filter" for="all" onclick="applyFilters('all')">همه وقایع</label>
+
+                    <input type="radio" class="btn-check" name="filter" id="tabs">
+                    <label class="btn btn-filter" for="tabs" onclick="applyFilters('تغییر تب')">تغییر تب</label>
+
+                    <input type="radio" class="btn-check" name="filter" id="size">
+                    <label class="btn btn-filter" for="size" onclick="applyFilters('تغییر سایز پنجره')">تغییر سایز</label>
+
+                    <input type="radio" class="btn-check" name="filter" id="ip">
+                    <label class="btn btn-filter" for="ip" onclick="applyFilters('تغییر IP')">تغییر IP</label>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap align-items-center">
+                    <div class="control-chip d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass muted"></i>
+                        <input id="searchInput" type="text" placeholder="جستجو در جزئیات..." oninput="applyFilters(currentType)" style="width: 220px;">
+                    </div>
+
+                    <div class="control-chip d-flex align-items-center gap-2">
+                        <i class="fa-solid fa-arrow-up-wide-short muted"></i>
+                        <select id="sortSelect" onchange="applyFilters(currentType)">
+                            <option value="asc">قدیمی → جدید</option>
+                            <option value="desc">جدید → قدیمی</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-dark rounded-pill px-4" onclick="window.print()">
+                        <i class="fas fa-print me-2"></i> خروجی PDF
+                    </button>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                
+                <div class="col-lg-8">
+                    <div class="chart-shell p-3" style="height: 470px;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="text-muted mb-0">
+                                <i class="fas fa-chart-line me-2"></i>
+                                نمودار زمانی وقایع
+                            </h6>
+                            <small class="muted">کلیک روی نقطه = انتخاب رویداد</small>
+                        </div>
+                        <canvas id="behaviorChart"></canvas>
+                    </div>
+                </div>
+
+                
+                <div class="col-lg-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="text-muted mb-0"><i class="fas fa-list-ul me-2"></i> جزئیات وقایع</h6>
+                        <small class="muted" id="shownCount">—</small>
+                    </div>
+
+                    <div id="events-list" class="timeline-container">
+                        {% for event in events %}
+                        <div class="event-card fade-in"
+                             data-type="{{ event.type }}"
+                             data-time="{{ event.time|date:'H:i:s' }}"
+                             data-details="{{ event.details|default_if_none:''|escape }}"
+                             data-idx="{{ forloop.counter0 }}"
+                             onclick="selectEventByIndex({{ forloop.counter0 }})">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="fw-bold small">{{ event.type }}</span>
+                                <span class="time-badge">{{ event.time|date:"H:i:s" }}</span>
+                            </div>
+                            <div class="small text-muted">{{ event.details }}</div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                            <p>هیچ موردی ثبت نشد.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    
+    const rawData = [
+        {% for event in events %}
+        {
+            idx: {{ forloop.counter0 }},
+            time: "{{ event.time|date:'H:i:s' }}",
+            type: "{{ event.type }}",
+            details: "{{ event.details|default_if_none:''|escapejs }}"
+        },
+        {% endfor %}
+    ];
+
+    
+    const typeMapping = {
+        'تغییر تب': { y: 3, color: '#e74a3b' },
+        'تغییر سایز پنجره': { y: 2, color: '#f6c23e' },
+        'تغییر IP': { y: 1, color: '#36b9cc' }
+    };
+
+    let currentType = 'all';
+    let activeIndex = null;
+
+    function byTimeAsc(a,b){ return a.time.localeCompare(b.time); }
+    function byTimeDesc(a,b){ return b.time.localeCompare(a.time); }
+
+    
+    function updateKPI(data) {
+        document.getElementById('kpiTotal').innerText = data.length;
+
+        if (data.length === 0) {
+            document.getElementById('kpiLast').innerText = '—';
+            document.getElementById('kpiRange').innerText = '—';
+            return;
+        }
+        const sorted = [...data].sort(byTimeAsc);
+        document.getElementById('kpiLast').innerText = sorted[sorted.length - 1].type;
+
+        const start = sorted[0].time;
+        const end = sorted[sorted.length - 1].time;
+        document.getElementById('kpiRange').innerText = `${start} تا ${end}`;
+    }
+
+    
+    function updateListVisibility(dataIdxSet) {
+        const cards = document.querySelectorAll('.event-card');
+        let shown = 0;
+        cards.forEach(card => {
+            const idx = Number(card.dataset.idx);
+            const visible = dataIdxSet.has(idx);
+            card.style.display = visible ? 'block' : 'none';
+            if (visible) shown++;
+        });
+        document.getElementById('shownCount').innerText = `نمایش: ${shown}`;
+    }
+
+    
+    function highlightCard(idx) {
+        document.querySelectorAll('.event-card').forEach(c => c.classList.remove('active'));
+        const el = document.querySelector(`.event-card[data-idx="${idx}"]`);
+        if (el) {
+            el.classList.add('active');
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    }
+
+    
+    const ctx = document.getElementById('behaviorChart').getContext('2d');
+
+    const chartDataFrom = (data) => ({
+        labels: data.map(d => d.time),
+        datasetY: data.map(d => (typeMapping[d.type]?.y ?? 0)),
+        pointColors: data.map(d => (typeMapping[d.type]?.color ?? '#999')),
+        idxMap: data.map(d => d.idx) 
+    });
+
+    let currentFiltered = [...rawData];
+    const initial = chartDataFrom(currentFiltered);
+
+    let behaviorChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: initial.labels,
+            datasets: [{
+                label: 'وقایع',
+                data: initial.datasetY,
+                borderColor: '#4e73df',
+                pointBackgroundColor: initial.pointColors,
+                pointRadius: 6,
+                pointHoverRadius: 9,
+                borderWidth: 3,
+                tension: 0.28,
+                fill: true,
+                backgroundColor: 'rgba(78, 115, 223, 0.06)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    displayColors: false,
+                    backgroundColor: 'rgba(17, 24, 39, 0.92)',
+                    padding: 12,
+                    callbacks: {
+                        title: (items) => {
+                            const i = items[0].dataIndex;
+                            const rawIdx = currentFiltered[i]?.idx;
+                            const item = rawData.find(x => x.idx === rawIdx);
+                            return item ? `${item.type} - ${item.time}` : '';
+                        },
+                        label: (item) => {
+                            const i = item.dataIndex;
+                            const rawIdx = currentFiltered[i]?.idx;
+                            const ev = rawData.find(x => x.idx === rawIdx);
+                            return ev ? ev.details : '';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    min: 0, max: 4,
+                    ticks: {
+                        stepSize: 1,
+                        callback: (val) => {
+                            if(val === 3) return 'تغییر تب';
+                            if(val === 2) return 'تغییر سایز';
+                            if(val === 1) return 'تغییر IP';
+                            return '';
+                        }
+                    },
+                    grid: { color: 'rgba(0,0,0,0.06)' }
+                },
+                x: { grid: { display: false } }
+            },
+            onHover: (evt, elements) => {
+                if (!elements?.length) return;
+                const pointIndex = elements[0].index;
+                const rawIdx = currentFiltered[pointIndex]?.idx;
+                if (rawIdx !== undefined) highlightCard(rawIdx);
+            },
+            onClick: (evt, elements) => {
+                if (!elements?.length) return;
+                const pointIndex = elements[0].index;
+                const rawIdx = currentFiltered[pointIndex]?.idx;
+                if (rawIdx !== undefined) {
+                    activeIndex = rawIdx;
+                    highlightCard(rawIdx);
+                    
+                    behaviorChart.setActiveElements([{ datasetIndex: 0, index: pointIndex }]);
+                    behaviorChart.tooltip.setActiveElements([{ datasetIndex: 0, index: pointIndex }], {x:0,y:0});
+                    behaviorChart.update();
+                }
+            }
+        }
+    });
+
+    function selectEventByIndex(idx) {
+        
+        const pos = currentFiltered.findIndex(x => x.idx === idx);
+        highlightCard(idx);
+        if (pos >= 0) {
+            behaviorChart.setActiveElements([{ datasetIndex: 0, index: pos }]);
+            behaviorChart.update();
+        }
+    }
+
+    
+    function applyFilters(filterType) {
+        currentType = filterType;
+
+        const q = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+        const sortMode = document.getElementById('sortSelect')?.value || 'asc';
+
+        
+        let data = [...rawData];
+
+        if (filterType !== 'all') data = data.filter(d => d.type === filterType);
+        if (q) data = data.filter(d => (d.details || '').toLowerCase().includes(q) || (d.time || '').includes(q));
+
+        
+        data.sort(sortMode === 'desc' ? byTimeDesc : byTimeAsc);
+
+        currentFiltered = data;
+
+        
+        updateKPI(currentFiltered);
+
+        
+        const idxSet = new Set(currentFiltered.map(d => d.idx));
+        updateListVisibility(idxSet);
+
+        
+        const packed = chartDataFrom(currentFiltered);
+        behaviorChart.data.labels = packed.labels;
+        behaviorChart.data.datasets[0].data = packed.datasetY;
+        behaviorChart.data.datasets[0].pointBackgroundColor = packed.pointColors;
+        behaviorChart.update('active');
+    }
+
+    
+    applyFilters('all');
+</script>
+
+</body>
+</html>
