@@ -102,8 +102,7 @@ def manage_enrollments(request, course_id):
 
     course = get_object_or_404(Course, CourseID=course_id)
     
-    # --- نمایش دانشجویان ثبت نام شده ---
-    # برای جلوگیری از خطای 'Unknown column 'Enrollments.id'', اینجا از raw query استفاده می کنیم
+
     enrolled_students_data = []
     try:
         with connection.cursor() as cursor:
@@ -138,7 +137,7 @@ def manage_enrollments(request, course_id):
     if request.method == 'POST':
         form = EnrollStudentForm(request.POST)
         if form.is_valid():
-            student = form.cleaned_data.get('student') # استفاده از .get برای امنیت بیشتر
+            student = form.cleaned_data.get('student') 
             
             if student:
                 # print(f"DEBUG: Selected student object: {student}")
@@ -193,8 +192,7 @@ def remove_student_from_course(request, course_id, student_id):
 
     course = get_object_or_404(Course, CourseID=course_id)
     
-    # --- رفع مشکل StudentID ---
-    # student_id که از URL می آید، باید همان UserKey باشد چون PK جدول Student است.
+
     try:
         student = Student.objects.get(pk= student_id) 
     except Student.DoesNotExist:
@@ -203,23 +201,21 @@ def remove_student_from_course(request, course_id, student_id):
     except Exception as e:
         messages.error(request, f"خطا در یافتن دانشجو: {e}")
         return redirect('EduStaffs:manage_enrollments', course_id=course_id)
-    # --- ---
-
-    # --- استفاده از raw SQL برای DELETE ---
+    
     try:
         with connection.cursor() as cursor:
             cursor.execute("""
                 DELETE FROM Enrollments
                 WHERE StudentKey = %s AND CourseKey = %s
-            """, [student.pk, course.CourseID]) # student.pk باید همان UserKey باشد
+            """, [student.pk, course.CourseID]) 
         
-        # --- نمایش پیام موفقیت ---
+        
         try:
             student_name = f"{student.UserKey.FirstName} {student.UserKey.LastName}"
         except AttributeError:
-            student_name = "دانشجو" # Fallback اگر نام قابل دسترسی نبود
+            student_name = "دانشجو" 
         messages.success(request, f"دانشجو {student_name} با موفقیت از درس حذف شد.")
-        # --- ---
+        
         
     except Exception as e:
         messages.error(request, f"خطا در حذف دانشجو از درس: {e}")
