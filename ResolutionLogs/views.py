@@ -21,6 +21,8 @@ def change_size(request):
             'message': 'session_id_not_found'
         })
     
+    user_pk = request.session.get('user_id')
+    
     username = request.session.get('username')
     
     data = json.loads(request.body)
