@@ -20,7 +20,7 @@ class IPAddressLog(models.Model):
     Location = models.CharField(max_length=200, blank=True, null=True, verbose_name="موقعیت مکانی")
 
     def __str__(self):
-        return f"IP address changed at {self.ViewStartTime.strftime('%Y-%m-%d %H:%M')}"
+        return f"IP address changed at {self.LogTime.strftime('%Y-%m-%d %H:%M')}"
     
     class Meta:
         managed = False

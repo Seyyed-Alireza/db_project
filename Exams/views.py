@@ -405,13 +405,17 @@ def exit_exam(request):
                         last_log.save()
                     # QuestionViewLog.objects.filter(SessionKey=request.session.get('exam_session_id')).update(ViewEndTime=get_time_now())
                     event = data_received.get('event')
+
+                    exam_id = login_session.ExamKey.pk
+                    manual_fraud_check(exam_id, student_id=user.pk)
+                    
                     login_session.IsActive = False
                     login_session.LogoutTime = get_time_now()
                     login_session.save(update_fields=['IsActive', 'LogoutTime'])
                 
                     try:
-                        exam_id = login_session.ExamKey.pk
-                        manual_fraud_check(exam_id, student_id=user.pk)
+                        # exam_id = login_session.ExamKey.pk
+                        # manual_fraud_check(exam_id, student_id=user.pk)
                         print(f"[SUCCESS]: ارزیابی تقلب برای دانشجو {user.pk} انجام شد.")
                     except Exception as e:
                         print(f"[ERROR]: خطا در اجرای دستی بررسی تقلب: {e}")
