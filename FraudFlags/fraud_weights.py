@@ -1,5 +1,5 @@
 FRAUD_WEIGHTS = {
-    "tab_switch": 30,
+    "tab_switch": 20,
     "resolution_change": 25,
     "fullscreen_exit": 25,
     "multiple_login": 30,
