@@ -68,7 +68,6 @@ def course_page(request, course_id):
 
     exams_data = []
     for exam, status, id, has in exams_with_status:
-        print(has)
         exams_data.append({
             'id': exam.pk,
             'title': exam.Title,
