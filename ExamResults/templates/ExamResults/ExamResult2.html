@@ -1,0 +1,60 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'base-style/base.css' %}">
+    <link rel="stylesheet" href="{% static 'ExamResults/ResultStyle.css' %}">
+    <title>نتیجه آزمون</title>
+</head>
+<body>
+    <header>
+        <h1>نتیجه آزمون</h1>
+    </header>
+
+    <div id="container">
+        {% if exam_title %}
+        <div class="exam-result-card">
+            <div class="exam-title-section">
+                <h2>{{ exam_title }}</h2>
+                {% if calculated_at %}
+                <span class="calculated-date">تاریخ محاسبه: {{ calculated_at|date:"Y/m/d H:i" }}</span>
+                {% endif %}
+            </div>
+
+            <div class="result-details">
+                <div class="detail-item">
+                    <span class="detail-label">نمره کل:</span>
+                    <span class="detail-value score">{{ total_score }}</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">وضعیت:</span>
+                    <span class="detail-value status {% if status %}passed{% else %}failed{% endif %}">
+                        {% if status %}قبول{% else %}مردود{% endif %}
+                    </span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">سطح نمره:</span>
+                    <span class="detail-value grade">{{ grade }}</span>
+                </div>
+            </div>
+
+            <div class="result-actions">
+                <a href="{% url 'Courses:course_page' %}" class="btn">بازگشت به لیست آزمون‌ها</a>
+            </div>
+        </div>
+        {% else %}
+        <div class="no-result">
+            <div class="no-result-icon">⚠️</div>
+            <p>نتیجه‌ای برای این آزمون یافت نشد.</p>
+            <p class="no-result-hint">ممکن است آزمون هنوز تصحیح نشده باشد یا شما در این آزمون شرکت نکرده باشید.</p>
+            <a href="{% url 'Courses:course_page' %}" class="btn">بازگشت به لیست آزمون‌ها</a>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

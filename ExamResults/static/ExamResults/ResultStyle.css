@@ -1,0 +1,160 @@
+/* Exam Result Styles */
+
+.exam-result-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 600px;
+    margin: 2rem auto;
+    backdrop-filter: blur(10px);
+}
+
+.exam-title-section {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.exam-title-section h2 {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.calculated-date {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
+}
+
+.result-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    transition: background 0.3s ease;
+}
+
+.detail-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.detail-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
+}
+
+.detail-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.detail-value.score {
+    color: #00ff88;
+    font-size: 1.5rem;
+}
+
+.detail-value.status {
+    padding: 0.3rem 1rem;
+    border-radius: 20px;
+    font-size: 0.95rem;
+}
+
+.detail-value.status.passed {
+    background: rgba(0, 255, 136, 0.15);
+    color: #00ff88;
+    border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.detail-value.status.failed {
+    background: rgba(255, 0, 0, 0.15);
+    color: #ff4444;
+    border: 1px solid rgba(255, 0, 0, 0.3);
+}
+
+.detail-value.grade {
+    color: #008cff;
+    font-size: 1.2rem;
+}
+
+.result-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.result-actions .btn {
+    min-width: 200px;
+}
+
+/* No Result Styles */
+.no-result {
+    text-align: center;
+    padding: 3rem 2rem;
+    max-width: 500px;
+    margin: 2rem auto;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+.no-result-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.no-result p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.no-result-hint {
+    color: rgba(255, 255, 255, 0.5) !important;
+    font-size: 0.9rem !important;
+    margin-bottom: 2rem !important;
+}
+
+.no-result .btn {
+    margin-top: 1rem;
+}
+
+/* Responsive Design */
+@media only screen and (max-width: 768px) {
+    .exam-result-card {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .detail-item {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+    
+    .exam-title-section h2 {
+        font-size: 1.3rem;
+    }
+}
+
+@media only screen and (max-width: 376px) {
+    .exam-result-card {
+        margin: 0.5rem;
+        padding: 1rem;
+    }
+    
+    .result-actions .btn {
+        width: 100%;
+    }
+}

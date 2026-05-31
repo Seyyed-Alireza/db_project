@@ -261,6 +261,11 @@
                                     ورود به پنل آزمون
                                 </button>
                             {% endif %}
+                            {% if role == "student" and status == "ended" %}
+                                <button type="button" class="btn btn-primary" onclick="location.href='{% url 'ExamResults:exam_result' exam.pk %}'">
+                                    نمایش نتیجه
+                                </button>
+                            {% endif %}
                             
                             {% if role == "teacher" %}
                                 <button type="button" class="btn btn-primary" onclick="location.href='{% url 'Exams:exam_page' course.pk exam.pk %}'">
