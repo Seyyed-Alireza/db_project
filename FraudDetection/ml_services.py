@@ -33,7 +33,7 @@ def run_fraud_detection_ml(exam_id):
 
     features = ['tab_switches', 'ip_count', 'is_fullscreen', 'res_changed']
     model = IsolationForest(n_estimators=100, contamination=0.1, random_state=42)
-    
+     
     
     df['anomaly_score'] = model.fit_predict(df[features])
     
