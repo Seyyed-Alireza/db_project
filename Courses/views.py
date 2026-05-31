@@ -7,6 +7,7 @@ from Courses.models import Course
 from Exams.models import Exam
 from Exams.forms import ExamForm
 from Enrollments.models import Enrollment
+from Questions.models import Question
 from Students.models import Student
 from Users.models import User
 from Teachers.models import Teacher
@@ -57,19 +58,23 @@ def course_page(request, course_id):
         'inprogress'
         for exam in exams
     ]
+    has_question = [
+        len(Question.objects.filter(ExamKey=exam.pk)) > 0
+        for exam in exams
+    ]
     ids = list(range(len(exams)))
-    exams_with_status = list(zip(exams, statuses, ids))
+    exams_with_status = list(zip(exams, statuses, ids, has_question))
     exams_with_status.sort(key=lambda data: order(data[0], data[1]))
 
     exams_data = []
-    for exam, status, id in exams_with_status:
+    for exam, status, id, has in exams_with_status:
+        print(has)
         exams_data.append({
             'id': exam.pk,
             'title': exam.Title,
             'start_time': exam.StartTime.isoformat() if exam.StartTime else None,
             'end_time': exam.EndTime.isoformat() if exam.EndTime else None,
             'status': status,
-            # 'index': exam.pk,
         })
 
     context = {

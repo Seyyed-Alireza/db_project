@@ -241,7 +241,7 @@
         
         <div class="exams" id="exams-container">
             {% if exams_with_status %}
-                {% for exam, status, id in exams_with_status %}
+                {% for exam, status, id, has_question in exams_with_status %}
                     <div class="exam-box" id="exam-box-{{ exam.pk }}">
                         <p>{{ exam.Title }}</p>
                         
@@ -256,11 +256,16 @@
                         {% endif %}
 
                         <div class="exam-options">
-                            <button type="button" class="btn btn-primary" onclick="location.href='{% url 'Exams:exam_page' course.pk exam.pk %}'">
-                                ورود به پنل آزمون
-                            </button>
+                            {% if role == "student" and has_question %}
+                                <button type="button" class="btn btn-primary" onclick="location.href='{% url 'Exams:exam_page' course.pk exam.pk %}'">
+                                    ورود به پنل آزمون
+                                </button>
+                            {% endif %}
                             
                             {% if role == "teacher" %}
+                                <button type="button" class="btn btn-primary" onclick="location.href='{% url 'Exams:exam_page' course.pk exam.pk %}'">
+                                    ورود به پنل آزمون
+                                </button>
                                 <div style="display: flex; gap: 8px;">
                                     <button type="button" class="btn btn--secondary" style="flex: 1;" onclick="location.href='{% url 'Exams:edit_exam' course.pk exam.pk %}'">
                                         ویرایش

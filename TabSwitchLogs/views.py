@@ -54,7 +54,9 @@ def blur_activity(request):
             print(f'{Colors.INFO}[INFO]: The exam page was hidden for user for {seconds:.2f} seconds{Colors.RESET}')
         
         request.session['last_time'] = now
-
+        if not(request.session.get('question_order', None)):
+            return JsonResponse({"status": "ok"})
+    
         TabSwitchLog.objects.create(
             SessionKey_id=session_id,
             QuestionKey_id=Question.objects.filter(ExamKey=request.session.get('exam_id'), Order=request.session.get('question_order')).first().pk,
