@@ -118,6 +118,11 @@
             <div class="user-card">
                 {% if user.Role == "Student" or user.Role == "student" %}
                     <p>نقش: دانشجو | شماره دانشجویی: <strong>{{ fk.StudentNumber }}</strong></p>
+                    <button type="button"
+                            class="btn btn-primary"
+                            onclick="location.href='{% url 'ExamResults:student_results' %}'">
+                        مشاهده کارنامه
+                    </button>
                 {% elif user.Role|lower == "teacher" %}
                     <p>نقش: استاد </p>
                 {% else %}

@@ -25,6 +25,11 @@ from .forms import ExamForm
 import json, time, jdatetime, datetime
 from FraudFlags.services import manual_fraud_check
 from FraudFlags.models import FraudFlag
+from QuestionOptions.models import QuestionOption
+from django.http import HttpResponse
+from main.constant import EventType
+from main.constant import EventType, Colors
+from django.contrib import messages
 
 def exam_status(request, course_id, exam_id, user):
     cache_key = f'course_{course_id}'
@@ -462,3 +467,150 @@ def exit_exam(request):
             'status': 'not student',
             'message': 'شما دانش آموز نیستید'
         })
+
+
+def manage_questions(request, course_id, exam_id):
+
+    cache_key = f'course_{course_id}'
+    course = cache.get(cache_key)
+
+    if not course:
+        course = get_object_or_404(Course, pk=course_id)
+        cache.set(cache_key, course, 10800)
+
+    if not validate_teacher(request, course):
+        return render(request, 'Courses/not_allowed.html')
+
+    exam = get_object_or_404(Exam, pk=exam_id, CourseKey_id=course_id)
+
+    questions = Question.objects.filter(ExamKey=exam).order_by('Order', 'QuestionID')
+
+    question_options = {
+        q.QuestionID: QuestionOption.objects.filter(QuestionKey=q).order_by('OptionID')
+        for q in questions
+    }
+
+    context = {
+        "course": course,
+        "exam": exam,
+        "questions": questions,
+        "question_options": question_options,
+    }
+
+    return render(request, "Exams/ManageQuestions.html", context)
+
+def add_question(request, course_id, exam_id):
+    course = get_object_or_404(Course, pk=course_id)
+    exam = get_object_or_404(Exam, pk=exam_id, CourseKey=course)
+
+    if request.method == 'POST':
+        question_text = request.POST.get('question_text', '').strip()
+        question_type = request.POST.get('question_type')
+        score = request.POST.get('score')
+        order = request.POST.get('order')
+        question_image = request.FILES.get('question_image')
+
+        if not question_text:
+            messages.error(request, 'متن سوال الزامی است.')
+            return render(request, 'Exams/AddQuestion.html', {
+                'course': course,
+                'exam': exam,
+            })
+
+        if not question_type:
+            messages.error(request, 'نوع سوال الزامی است.')
+            return render(request, 'Exams/AddQuestion.html', {
+                'course': course,
+                'exam': exam,
+            })
+
+        if not score:
+            messages.error(request, 'نمره سوال الزامی است.')
+            return render(request, 'Exams/AddQuestion.html', {
+                'course': course,
+                'exam': exam,
+            })
+
+        if not order:
+            last_question = Question.objects.filter(ExamKey=exam).order_by('-Order').first()
+            order = (last_question.Order + 1) if last_question else 1
+
+        Question.objects.create(
+            ExamKey=exam,
+            QuestionText=question_text,
+            QuestionType=int(question_type),
+            Score=score,
+            Order=order,
+            QuestionImage=question_image
+        )
+
+        messages.success(request, 'سوال با موفقیت اضافه شد.')
+        return redirect('Exams:manage_questions', course.pk, exam.pk)
+
+    return render(request, 'Exams/AddQuestion.html', {
+        'course': course,
+        'exam': exam,
+        'mcq_type': EventType.QUESTION_MULTIPLE_CHOICE,
+        'desc_type': EventType.QUESTION_DESCRIPTIVE,
+    })
+
+
+def edit_question(request, course_id, exam_id, question_id):
+    course = get_object_or_404(Course, pk=course_id)
+    exam = get_object_or_404(Exam, pk=exam_id, CourseKey=course)
+    question = get_object_or_404(Question, pk=question_id, ExamKey=exam)
+
+    if request.method == 'POST':
+        question_text = request.POST.get('question_text', '').strip()
+        question_type = request.POST.get('question_type')
+        score = request.POST.get('score')
+        order = request.POST.get('order')
+        question_image = request.FILES.get('question_image')
+
+        if not question_text:
+            messages.error(request, 'متن سوال الزامی است.')
+            return render(request, 'Exams/EditQuestion.html', {
+                'course': course,
+                'exam': exam,
+                'question': question,
+            })
+
+        question.QuestionText = question_text
+        if question_type:
+            question.QuestionType = int(question_type)
+        if score:
+            question.Score = score
+        if order:
+            question.Order = order
+        if question_image:
+            question.QuestionImage = question_image
+
+        question.save()
+
+        messages.success(request, 'سوال با موفقیت ویرایش شد.')
+        return redirect('Exams:manage_questions', course.pk, exam.pk)
+
+    return render(request, 'Exams/EditQuestion.html', {
+        'course': course,
+        'exam': exam,
+        'question': question,
+        'mcq_type': EventType.QUESTION_MULTIPLE_CHOICE,
+        'desc_type': EventType.QUESTION_DESCRIPTIVE,
+    })
+
+def delete_question(request, course_id, exam_id, question_id):
+    course = get_object_or_404(Course, pk=course_id)
+    exam = get_object_or_404(Exam, pk=exam_id, CourseKey=course)
+    question = get_object_or_404(Question, pk=question_id, ExamKey=exam)
+
+    if request.method == 'POST':
+        question.delete()
+        messages.success(request, 'سوال با موفقیت حذف شد.')
+        return redirect('Exams:manage_questions', course.pk, exam.pk)
+
+    return render(request, 'Exams/DeleteQuestion.html', {
+        'course': course,
+        'exam': exam,
+        'question': question,
+    })
+

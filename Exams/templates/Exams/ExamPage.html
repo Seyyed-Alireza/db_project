@@ -1,30 +1,580 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'base-style/base.css' %}?v=2">
     <title>صفحه امتحان</title>
+
+    <link rel="stylesheet" href="{% static 'base-style/base.css' %}?v=2">
+
+    <style>
+        :root {
+            --bg-1: #030711;
+            --bg-2: #07111f;
+            --bg-3: #0b1b2d;
+
+            --card: rgba(8, 18, 32, 0.88);
+            --card-2: rgba(10, 24, 42, 0.92);
+
+            --text-main: #ecf8ff;
+            --text-soft: #a9c5d6;
+            --text-dim: #6f8ca1;
+
+            --cyan: #00f7ff;
+            --cyan-soft: rgba(0, 247, 255, 0.18);
+            --blue: #3aa0ff;
+            --purple: #8b5cf6;
+            --green: #00ffb3;
+            --yellow: #ffd166;
+            --red: #ff4d6d;
+
+            --border: rgba(0, 247, 255, 0.18);
+            --border-strong: rgba(0, 247, 255, 0.42);
+
+            --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.45);
+            --shadow-neon: 0 0 16px rgba(0, 247, 255, 0.18), 0 0 36px rgba(58, 160, 255, 0.10);
+
+            --radius-xl: 26px;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            font-family: Tahoma, IRANSans, Vazirmatn, sans-serif;
+            color: var(--text-main);
+            background:
+                radial-gradient(circle at top right, rgba(0, 247, 255, 0.08), transparent 24%),
+                radial-gradient(circle at top left, rgba(139, 92, 246, 0.10), transparent 26%),
+                radial-gradient(circle at bottom center, rgba(58, 160, 255, 0.08), transparent 24%),
+                linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 48%, var(--bg-3) 100%);
+        }
+
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 28px;
+            overflow-x: hidden;
+        }
+
+        .background-grid {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0, 247, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 247, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .background-glow {
+            position: fixed;
+            width: 520px;
+            height: 520px;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.18;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow-1 {
+            top: -120px;
+            right: -120px;
+            background: var(--cyan);
+        }
+
+        .glow-2 {
+            bottom: -140px;
+            left: -120px;
+            background: var(--purple);
+        }
+
+        .exam-shell {
+            width: 100%;
+            max-width: 980px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .exam-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--radius-xl);
+            background: linear-gradient(180deg, rgba(10, 22, 38, 0.92), rgba(8, 18, 32, 0.96));
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-card);
+            padding: 34px;
+        }
+
+        .exam-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: var(--radius-xl);
+            padding: 1px;
+            background: linear-gradient(
+                135deg,
+                rgba(0, 247, 255, 0.55),
+                rgba(58, 160, 255, 0.14),
+                rgba(139, 92, 246, 0.42)
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-bottom: 26px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            color: #d9fbff;
+            background: linear-gradient(135deg, rgba(0, 247, 255, 0.12), rgba(58, 160, 255, 0.16));
+            border: 1px solid rgba(0, 247, 255, 0.24);
+            box-shadow: 0 0 18px rgba(0, 247, 255, 0.10);
+            font-weight: 700;
+            font-size: 0.94rem;
+        }
+
+        .brand-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 12px var(--green);
+        }
+
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #fff5da;
+            background: linear-gradient(135deg, rgba(255, 209, 102, 0.16), rgba(255, 183, 3, 0.16));
+            border: 1px solid rgba(255, 209, 102, 0.28);
+        }
+
+        .hero {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1.3fr 0.7fr;
+            gap: 22px;
+            align-items: stretch;
+        }
+
+        .hero-main,
+        .hero-side {
+            border-radius: var(--radius-lg);
+            background: linear-gradient(180deg, rgba(12, 27, 45, 0.88), rgba(8, 20, 35, 0.95));
+            border: 1px solid rgba(0, 247, 255, 0.12);
+            box-shadow: var(--shadow-neon);
+        }
+
+        .hero-main {
+            padding: 28px;
+        }
+
+        .hero-side {
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .title {
+            margin: 0 0 14px;
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            line-height: 1.5;
+            font-weight: 900;
+            color: var(--text-main);
+            text-shadow: 0 0 16px rgba(0, 247, 255, 0.08);
+        }
+
+        .title .accent {
+            color: var(--cyan);
+            text-shadow: 0 0 18px rgba(0, 247, 255, 0.28);
+        }
+
+        .subtitle {
+            margin: 0 0 18px;
+            color: var(--text-soft);
+            line-height: 2;
+            font-size: 1rem;
+        }
+
+        .warning-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 18px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(255, 77, 109, 0.08), rgba(255, 77, 109, 0.04));
+            border: 1px solid rgba(255, 77, 109, 0.22);
+        }
+
+        .warning-icon {
+            min-width: 42px;
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: rgba(255, 77, 109, 0.14);
+            color: #ffd8df;
+            box-shadow: 0 0 16px rgba(255, 77, 109, 0.12);
+        }
+
+        .warning-content h2 {
+            margin: 0 0 8px;
+            font-size: 1.03rem;
+            color: #ffe5ea;
+        }
+
+        .warning-content p {
+            margin: 0;
+            color: #ffd2db;
+            line-height: 1.95;
+            font-size: 0.96rem;
+        }
+
+        .stats-panel {
+            display: grid;
+            gap: 12px;
+        }
+
+        .stat-item {
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(11, 24, 41, 0.92), rgba(8, 20, 35, 0.98));
+            border: 1px solid rgba(58, 160, 255, 0.14);
+        }
+
+        .stat-label {
+            display: block;
+            color: var(--text-dim);
+            font-size: 0.88rem;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            color: var(--text-main);
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .tips-box {
+            padding: 16px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(0, 247, 255, 0.06), rgba(58, 160, 255, 0.04));
+            border: 1px solid rgba(0, 247, 255, 0.14);
+        }
+
+        .tips-title {
+            margin: 0 0 10px;
+            color: var(--cyan);
+            font-size: 0.95rem;
+            font-weight: 800;
+        }
+
+        .tips-list {
+            margin: 0;
+            padding-right: 18px;
+            color: var(--text-soft);
+            line-height: 2;
+            font-size: 0.93rem;
+        }
+
+        .actions {
+            margin-top: 24px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .btn-neon {
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+            padding: 16px 28px;
+            font-size: 1rem;
+            font-weight: 900;
+            transition: 0.25s ease;
+            letter-spacing: 0.2px;
+        }
+
+        .btn-neon:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-neon:active {
+            transform: translateY(0);
+        }
+
+        .btn-start {
+            color: #031018;
+            background: linear-gradient(135deg, var(--cyan), #7df9ff);
+            box-shadow: 0 0 22px rgba(0, 247, 255, 0.25);
+            min-width: 220px;
+        }
+
+        .btn-start::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: -40%;
+            width: 34%;
+            height: 100%;
+            transform: skewX(-22deg);
+            background: rgba(255, 255, 255, 0.30);
+            filter: blur(2px);
+            transition: 0.6s;
+        }
+
+        .btn-start:hover::after {
+            right: 120%;
+        }
+
+        .btn-ghost {
+            color: var(--text-main);
+            background: linear-gradient(135deg, rgba(58, 160, 255, 0.14), rgba(139, 92, 246, 0.16));
+            border: 1px solid rgba(58, 160, 255, 0.22);
+        }
+
+        .helper-text {
+            color: var(--text-dim);
+            font-size: 0.92rem;
+            line-height: 1.9;
+        }
+
+        .security-strip {
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(0, 247, 255, 0.10);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .security-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-size: 0.88rem;
+            color: var(--text-soft);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(0, 247, 255, 0.08);
+        }
+
+        .security-pill span {
+            color: var(--green);
+            text-shadow: 0 0 10px rgba(0, 255, 179, 0.18);
+        }
+
+        .hidden-demo-area {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+        }
+
+        @media (max-width: 900px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 14px;
+            }
+
+            .exam-card {
+                padding: 18px;
+                border-radius: 18px;
+            }
+
+            .hero-main,
+            .hero-side {
+                padding: 16px;
+            }
+
+            .title {
+                font-size: 1.6rem;
+            }
+
+            .actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn-neon {
+                width: 100%;
+            }
+
+            .top-bar {
+                margin-bottom: 18px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div id="container">
-        <h1>صفحه امتحان</h1>
-        <h2><span style="color: red;">توجه:</span> رفرش کردن در این صفحه یا درحین آزمون باعث بیرون انداختن شما از آزمون می‌شود</h2>
-        <script>window.start_exam_button = false;</script>
-        <button type="button" class="btn" id="start-exam"
-            onclick="
-                window.start_exam_button = true;
-                goToQuestions({{ exam_id }}, {{ course_id }});
-                // location.href='{% url 'Exams:question_page' exam_id course_id %}';
-            "
-        > شروع آزمون
-        </button>
-        <p>متن برای کپی</p>
-        <input type="text" placeholder="for paste"><br>
-        <input type="text" value="for cut"><br>
-        
+    <div class="background-grid"></div>
+    <div class="background-glow glow-1"></div>
+    <div class="background-glow glow-2"></div>
+
+    <div class="exam-shell">
+        <div class="exam-card">
+            <div class="top-bar">
+                <div class="brand-badge">
+                    <span class="brand-dot"></span>
+                    <span>سامانه آزمون آنلاین</span>
+                </div>
+
+                <div class="status-chip">
+                    <span>⚠</span>
+                    <span>حالت نظارت آزمون فعال است</span>
+                </div>
+            </div>
+
+            <div class="hero">
+                <div class="hero-main">
+                    <h1 class="title">
+                        آماده‌ی <span class="accent">شروع آزمون</span> هستید؟
+                    </h1>
+
+                    <p class="subtitle">
+                        پیش از ورود به آزمون، لطفاً نکات زیر را با دقت مطالعه کنید.
+                        پس از شروع، رفتار شما در جلسه آزمون ثبت می‌شود و هرگونه
+                        اقدام غیرمجاز می‌تواند بر وضعیت آزمون شما تأثیر بگذارد.
+                    </p>
+
+                    <div class="warning-box">
+                        <div class="warning-icon">!</div>
+                        <div class="warning-content">
+                            <h2>هشدار مهم</h2>
+                            <p>
+                                رفرش کردن صفحه، بستن تب، جابه‌جایی غیرمجاز بین صفحات یا
+                                خروج ناگهانی از محیط آزمون ممکن است باعث پایان یافتن
+                                جلسه آزمون یا ثبت تخلف برای شما شود.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <script>window.start_exam_button = false;</script>
+
+                        <button
+                            type="button"
+                            class="btn-neon btn-start"
+                            id="start-exam"
+                            onclick="
+                                window.start_exam_button = true;
+                                goToQuestions({{ exam_id }}, {{ course_id }});
+                            "
+                        >
+                            شروع آزمون
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn-neon btn-ghost"
+                            onclick="window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });"
+                        >
+                            مشاهده نکات آزمون
+                        </button>
+                    </div>
+
+                    <p class="helper-text">
+                        با فشردن دکمه «شروع آزمون»، شما تأیید می‌کنید که قوانین جلسه را
+                        مطالعه کرده‌اید و برای ورود به صفحه سوالات آماده هستید.
+                    </p>
+                </div>
+
+                <div class="hero-side">
+                    <div class="stats-panel">
+                        <div class="stat-item">
+                            <span class="stat-label">وضعیت سامانه</span>
+                            <span class="stat-value">آماده برگزاری آزمون</span>
+                        </div>
+
+                        <div class="stat-item">
+                            <span class="stat-label">نظارت جلسه</span>
+                            <span class="stat-value">فعال و در حال ثبت رویدادها</span>
+                        </div>
+
+                        <div class="stat-item">
+                            <span class="stat-label">اقدام پیشنهادی</span>
+                            <span class="stat-value">مرور نکات و سپس شروع آزمون</span>
+                        </div>
+                    </div>
+
+                    <div class="tips-box">
+                        <h3 class="tips-title">نکات قبل از شروع</h3>
+                        <ul class="tips-list">
+                            <li>اتصال اینترنت خود را بررسی کنید.</li>
+                            <li>از بستن یا رفرش کردن صفحه خودداری کنید.</li>
+                            <li>در طول آزمون فقط در همین تب بمانید.</li>
+                            <li>پس از شروع، مستقیماً وارد صفحه سوالات خواهید شد.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="security-strip">
+                <div class="security-pill"><span>●</span> ثبت وضعیت آزمون</div>
+                <div class="security-pill"><span>●</span> کنترل رویدادهای کاربر</div>
+                <div class="security-pill"><span>●</span> طراحی ایمن جلسه</div>
+            </div>
+
+            
+            <div class="hidden-demo-area" aria-hidden="true">
+                <p>متن برای کپی</p>
+                <input type="text" placeholder="for paste">
+                <input type="text" value="for cut">
+            </div>
+        </div>
     </div>
 
     <script src="{% static 'base-js/base.js' %}" charset="utf-8"></script>

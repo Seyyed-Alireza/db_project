@@ -1,0 +1,290 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>افزودن سوال</title>
+    <link rel="stylesheet" href="{% static 'base-style/base.css' %}">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a, #111827);
+            color: #e5e7eb;
+            font-family: Tahoma, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .page-wrapper {
+            max-width: 850px;
+            margin: 50px auto;
+            padding: 24px;
+        }
+
+        .card {
+            background: rgba(17, 24, 39, 0.95);
+            border: 1px solid rgba(34, 211, 238, 0.25);
+            border-radius: 20px;
+            box-shadow: 0 0 25px rgba(34, 211, 238, 0.08);
+            padding: 30px;
+        }
+
+        .title {
+            text-align: center;
+            color: #22d3ee;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #cbd5e1;
+            margin-bottom: 30px;
+            font-size: 15px;
+        }
+
+        .messages { margin-bottom: 20px; }
+        .message {
+            padding: 12px 14px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .message.error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            color: #fecaca;
+        }
+        .message.success {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            color: #bbf7d0;
+        }
+
+        .form-group { margin-bottom: 20px; }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #93c5fd;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="file"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: #f8fafc;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        textarea { min-height: 140px; resize: vertical; }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #22d3ee;
+            box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.12);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 25px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: 0.2s ease;
+        }
+
+        .btn-save {
+            background: linear-gradient(90deg, #06b6d4, #3b82f6);
+            color: white;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.25);
+        }
+
+        .btn-back {
+            background: #1f2937;
+            color: #e5e7eb;
+            border: 1px solid #374151;
+        }
+
+        .btn-back:hover { background: #273449; }
+
+        .help-text {
+            margin-top: 6px;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        .option-item {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <div class="card">
+            <h1 class="title">افزودن سوال جدید</h1>
+            <div class="subtitle">
+                درس: {{ course.CourseName }} |
+                آزمون: {{ exam.Title }}
+            </div>
+
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="question_text">متن سوال</label>
+                    <textarea name="question_text" id="question_text" required>{{ request.POST.question_text }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="question_type">نوع سوال</label>
+                    <select name="question_type" id="question_type" required>
+                        <option value="">-- انتخاب کنید --</option>
+
+                        {# حفظ انتخاب بعد از POST #}
+                        <option value="{{ mcq_type }}"
+                          {% if request.POST.question_type == mcq_type|stringformat:"s" %}selected{% endif %}
+                        >تستی</option>
+
+                        <option value="{{ desc_type }}"
+                          {% if request.POST.question_type == desc_type|stringformat:"s" %}selected{% endif %}
+                        >تشریحی</option>
+                    </select>
+                </div>
+
+                {# ====== MCQ OPTIONS (نمایش فقط برای تستی) ====== #}
+                <div class="form-group" id="mcq-options-wrapper" style="display:none;">
+                    <label>گزینه‌های سوال تستی</label>
+                    <div class="help-text" style="margin-bottom:10px;">
+                        لطفاً ۴ گزینه را وارد کنید. (اختیاری: گزینه صحیح را هم مشخص کنید)
+                    </div>
+
+                    <div class="options-grid">
+                        <div class="option-item">
+                            <input type="text" name="option_1" id="option_1" placeholder="گزینه ۱"
+                                   value="{{ request.POST.option_1|default_if_none:'' }}">
+                        </div>
+
+                        <div class="option-item">
+                            <input type="text" name="option_2" id="option_2" placeholder="گزینه ۲"
+                                   value="{{ request.POST.option_2|default_if_none:'' }}">
+                        </div>
+
+                        <div class="option-item">
+                            <input type="text" name="option_3" id="option_3" placeholder="گزینه ۳"
+                                   value="{{ request.POST.option_3|default_if_none:'' }}">
+                        </div>
+
+                        <div class="option-item">
+                            <input type="text" name="option_4" id="option_4" placeholder="گزینه ۴"
+                                   value="{{ request.POST.option_4|default_if_none:'' }}">
+                        </div>
+                    </div>
+
+                    <div style="height:14px;"></div>
+
+                    <label for="correct_option" style="font-weight:normal;color:#cbd5e1;">گزینه صحیح</label>
+                    <select name="correct_option" id="correct_option">
+                        <option value="">— انتخاب کنید —</option>
+                        <option value="1" {% if request.POST.correct_option == "1" %}selected{% endif %}>گزینه ۱</option>
+                        <option value="2" {% if request.POST.correct_option == "2" %}selected{% endif %}>گزینه ۲</option>
+                        <option value="3" {% if request.POST.correct_option == "3" %}selected{% endif %}>گزینه ۳</option>
+                        <option value="4" {% if request.POST.correct_option == "4" %}selected{% endif %}>گزینه ۴</option>
+                    </select>
+                </div>
+                {# ====== /MCQ OPTIONS ====== #}
+
+                <div class="form-group">
+                    <label for="score">نمره</label>
+                    <input type="number" name="score" id="score" step="0.25" min="0" required value="{{ request.POST.score }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="order">ترتیب نمایش</label>
+                    <input type="number" name="order" id="order" min="1" value="{{ request.POST.order }}">
+                    <div class="help-text">اگر خالی بماند، به صورت خودکار آخر لیست قرار می‌گیرد.</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="question_image">تصویر سوال</label>
+                    <input type="file" name="question_image" id="question_image" accept="image/*">
+                </div>
+
+                <div class="btn-row">
+                    <button type="submit" class="btn btn-save">✅ ذخیره سوال</button>
+                    <a href="{% url 'Exams:manage_questions' course.pk exam.pk %}" class="btn btn-back">⬅ بازگشت</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+      (function () {
+        const questionTypeSelect = document.getElementById('question_type');
+        const mcqWrapper = document.getElementById('mcq-options-wrapper');
+
+       
+        const MCQ_VALUE = "{{ mcq_type }}";
+
+        function syncMcqVisibility() {
+          const isMcq = questionTypeSelect.value === MCQ_VALUE;
+
+          mcqWrapper.style.display = isMcq ? 'block' : 'none';
+
+          
+          if (!isMcq) {
+            ['option_1','option_2','option_3','option_4'].forEach(id => {
+              const el = document.getElementById(id);
+              if (el) el.value = '';
+            });
+            const correct = document.getElementById('correct_option');
+            if (correct) correct.value = '';
+          }
+        }
+
+        
+        syncMcqVisibility();
+
+       
+        questionTypeSelect.addEventListener('change', syncMcqVisibility);
+      })();
+    </script>
+</body>
+</html>

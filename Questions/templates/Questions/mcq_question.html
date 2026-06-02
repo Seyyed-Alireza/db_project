@@ -1,62 +1,676 @@
-<!-- سوال تستی -->
-<div class="question-container" data-question-id="{{ question.QuestionID }}" data-order="{{ question.Order }}">
-    <div class="question-header">
-        <span class="badge badge-primary">سوال تستی</span><span>|</span>
-        <span class="question-number">سوال {{ question.order }}</span><span>|</span>
-        <span class="score">نمره: {{ question.score }}</span>
-    </div>
-    
-    <div class="question-body">
-        <div class="question-text">
-            {{ question.text|safe }}
-        </div>
-        
-        {% if question.QuestionImage %}
-            <div class="question-image">
-                <img src="{{ question.image }}" alt="تصویر سوال" id="question-image">
-            </div>
-        {% endif %}
-    </div>
-    
-    <form id="answer-form" action="{% url 'Answers:save_answer_m' question.id %}" novalidate autocomplete="off" data-question-type="mcq">
-        {% csrf_token %}
-        
-        <div class="options-container">
-            {% for option in form.selected_option_key.field.queryset %}
-                <div class="option-item">
-                    <input type="radio" 
-                           name="{{ form.selected_option_key.name }}" 
-                           value="{{ option.pk }}"
-                           id="option_{{ option.pk }}"
-                           {% if form.selected_option_key.value == option.pk %}checked{% endif %}>
-                    <label for="option_{{ option.pk }}">
-                        <strong>{{ option.OptionLabel }}</strong> {{ option.OptionText }}
-                    </label>
-                </div>
-            {% endfor %}
-        </div>
-        
-        <div class="form-actions">
-            {% if not first_question %}
-                <button type="button" class="btn" id="pre-question">
-                    سوال قبلی
-                </button>
-            {% endif %}
-            <button type="button" class="btn" id="save-answer">
-                ذخیره پاسخ
-            </button>
-            
-            <button type="button" class="btn btn-danger" id="clear-answer">حذف پاسخ</button>
+{% load static %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سوال تستی</title>
+    <meta name="csrf-token" content="{{ csrf_token }}">
 
-            {% if not last_question %}
-                <button type="button" class="btn" id="next-question">
-                    سوال بعدی
-                </button>
-            {% endif %}
-            <button type="button" class="btn" id="end-exam">
-                پایان آزمون
-            </button>
+    <style>
+        :root {
+            --bg-main: #07111f;
+            --bg-card: rgba(10, 22, 38, 0.88);
+            --bg-card-2: rgba(13, 29, 48, 0.92);
+            --border: rgba(0, 255, 255, 0.22);
+            --border-strong: rgba(0, 255, 255, 0.55);
+
+            --text-main: #eaf7ff;
+            --text-soft: #a9c6d8;
+            --text-dim: #7c9bb0;
+
+            --neon-cyan: #00f7ff;
+            --neon-blue: #3aa0ff;
+            --neon-purple: #8b5cf6;
+            --neon-green: #00ffb3;
+            --neon-red: #ff4d6d;
+            --neon-yellow: #ffd166;
+
+            --shadow-neon: 0 0 12px rgba(0, 247, 255, 0.22), 0 0 28px rgba(58, 160, 255, 0.14);
+            --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.35);
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 10px;
+        }
+
+        *{ box-sizing:border-box; }
+
+        html,body{
+            margin:0;
+            padding:0;
+            min-height:100%;
+            font-family:Tahoma, IRANSans, Vazirmatn, sans-serif;
+            background:
+                radial-gradient(circle at top right, rgba(0, 247, 255, 0.08), transparent 22%),
+                radial-gradient(circle at top left, rgba(139, 92, 246, 0.10), transparent 25%),
+                linear-gradient(135deg, #040b16 0%, #07111f 55%, #081827 100%);
+            color:var(--text-main);
+        }
+
+        body{ padding:24px; }
+        .page-shell{ max-width:1100px; margin:0 auto; }
+
+        .question-container.question-theme-neon{
+            width:100%;
+            border:1px solid var(--border);
+            border-radius:var(--radius-lg);
+            padding:28px;
+            background: linear-gradient(180deg, rgba(14, 31, 51, 0.50), rgba(8, 20, 35, 0.65));
+            box-shadow:var(--shadow-card);
+            position:relative;
+            overflow:hidden;
+        }
+
+        .question-container.question-theme-neon::before{
+            content:"";
+            position:absolute;
+            inset:0;
+            border-radius:var(--radius-lg);
+            padding:1px;
+            background: linear-gradient(
+                135deg,
+                rgba(0, 247, 255, 0.55),
+                rgba(58, 160, 255, 0.18),
+                rgba(139, 92, 246, 0.45)
+            );
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events:none;
+        }
+
+        .question-header{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:14px;
+            margin-bottom:22px;
+            padding-bottom:16px;
+            border-bottom:1px solid rgba(0, 247, 255, 0.14);
+            position:relative;
+            z-index:1;
+            flex-wrap:wrap;
+        }
+
+        .question-meta-right{
+            display:flex;
+            align-items:center;
+            flex-wrap:wrap;
+            gap:10px;
+        }
+
+        .badge-question{
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
+            padding:8px 14px;
+            background: linear-gradient(135deg, rgba(58, 160, 255, 0.18), rgba(0, 247, 255, 0.12));
+            border:1px solid rgba(58, 160, 255, 0.35);
+            color:#d8fff4;
+            border-radius:999px;
+            font-size:.95rem;
+            font-weight:700;
+            box-shadow:0 0 15px rgba(58, 160, 255, 0.12);
+        }
+
+        .meta-divider{
+            width:6px; height:6px;
+            background:var(--neon-cyan);
+            border-radius:50%;
+            box-shadow:0 0 10px var(--neon-cyan);
+        }
+
+        .question-number,.score{
+            color:var(--text-soft);
+            font-weight:600;
+            font-size:.96rem;
+        }
+
+        .question-body{
+            display:grid;
+            gap:20px;
+            margin-bottom:24px;
+            position:relative;
+            z-index:1;
+        }
+
+        .question-text-card,
+        .question-image-card,
+        .answer-panel{
+            background: linear-gradient(180deg, rgba(14, 31, 51, 0.9), rgba(8, 20, 35, 0.95));
+            border: 1px solid rgba(0, 247, 255, 0.14);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            box-shadow: var(--shadow-neon);
+        }
+
+        .section-title{
+            display:inline-block;
+            margin-bottom:14px;
+            font-size:.92rem;
+            font-weight:800;
+            letter-spacing:.3px;
+            color:var(--neon-cyan);
+            text-shadow:0 0 10px rgba(0, 247, 255, 0.25);
+        }
+
+        .question-text{
+            line-height:2;
+            font-size:1rem;
+            color:var(--text-main);
+            word-break:break-word;
+        }
+
+        .question-image{
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            padding:8px;
+        }
+
+        #question-image{
+            max-width:100%;
+            width:auto;
+            max-height:320px;
+            object-fit:contain;
+            border-radius:14px;
+            border:1px solid rgba(58, 160, 255, 0.35);
+            box-shadow:0 0 24px rgba(58, 160, 255, 0.16);
+            background:#02060c;
+            padding:6px;
+        }
+
+      
+        .options-grid{
+            display:grid;
+            grid-template-columns:1fr;
+            gap:14px;
+        }
+
+        .option-card{ position:relative; }
+        .option-input{ position:absolute; opacity:0; pointer-events:none; }
+
+        .option-label{
+            display:flex;
+            align-items:flex-start;
+            gap:14px;
+            padding:16px 18px;
+            border-radius:18px;
+            border:1px solid rgba(0, 247, 255, 0.14);
+            background: linear-gradient(180deg, rgba(14, 31, 51, 0.88), rgba(8, 20, 35, 0.92));
+            cursor:pointer;
+            transition:.22s ease;
+            color:var(--text-main);
+        }
+
+        .option-label:hover{
+            transform:translateY(-2px);
+            border-color:rgba(0, 247, 255, 0.28);
+            box-shadow:0 0 18px rgba(0, 247, 255, 0.10);
+        }
+
+        .option-input:checked + .option-label{
+            border-color:rgba(0, 247, 255, 0.55);
+            background: linear-gradient(180deg, rgba(0, 247, 255, 0.14), rgba(58, 160, 255, 0.08));
+            box-shadow:0 0 22px rgba(0, 247, 255, 0.14);
+        }
+
+        .option-marker{
+            min-width:34px;
+            width:34px;
+            height:34px;
+            border-radius:12px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background:rgba(255,255,255,.05);
+            border:1px solid rgba(0, 247, 255, 0.14);
+            color:var(--neon-cyan);
+            font-weight:900;
+            margin-top:2px;
+            box-shadow:0 0 12px rgba(0, 247, 255, 0.06);
+        }
+
+        .option-text{
+            flex:1;
+            line-height:1.95;
+            font-size:1rem;
+        }
+
+        
+        .form-actions{
+            display:flex;
+            flex-wrap:wrap;
+            gap:12px;
+            margin-top:22px;
+            position:relative;
+            z-index:1;
+        }
+
+        .btn{
+            border:none;
+            outline:none;
+            cursor:pointer;
+            padding:12px 20px;
+            border-radius:12px;
+            font-weight:800;
+            font-size:.95rem;
+            transition:all .22s ease;
+            position:relative;
+            overflow:hidden;
+            letter-spacing:.2px;
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+        }
+
+        .btn:hover{ transform:translateY(-2px); }
+        .btn:active{ transform:translateY(0); }
+        .btn:disabled{ opacity:.65; cursor:not-allowed; transform:none; }
+
+        .btn-primary{
+            color:#04111b;
+            background: linear-gradient(135deg, var(--neon-cyan), #7df9ff);
+            box-shadow:0 0 18px rgba(0, 247, 255, 0.3);
+        }
+        .btn-secondary{
+            color:var(--text-main);
+            background: linear-gradient(135deg, rgba(58, 160, 255, 0.16), rgba(139, 92, 246, 0.18));
+            border:1px solid rgba(58, 160, 255, 0.28);
+        }
+        .btn-success{
+            color:#04140b;
+            background: linear-gradient(135deg, #22c55e, #86efac);
+            box-shadow:0 0 18px rgba(34,197,94,.18);
+        }
+        .btn-danger{
+            color:#fff0f3;
+            background: linear-gradient(135deg, rgba(255, 77, 109, 0.9), rgba(255, 77, 109, 0.72));
+            box-shadow:0 0 18px rgba(255, 77, 109, 0.22);
+        }
+        .btn-warning{
+            color:#221700;
+            background: linear-gradient(135deg, #ffd166, #ffb703);
+            box-shadow:0 0 18px rgba(255, 209, 102, 0.22);
+        }
+
+        /* Messages + loading */
+        .message-box{
+            display:none;
+            margin-top:16px;
+            padding:14px 16px;
+            border-radius:12px;
+            font-size:.92rem;
+            font-weight:700;
+        }
+        .message-box.show{ display:block; }
+        .message-success{
+            background: rgba(0, 255, 179, 0.08);
+            border: 1px solid rgba(0, 255, 179, 0.25);
+            color: #d8fff2;
+        }
+        .message-error{
+            background: rgba(255, 77, 109, 0.08);
+            border: 1px solid rgba(255, 77, 109, 0.25);
+            color: #ffd6de;
+        }
+
+        .loading-overlay{
+            position:fixed;
+            inset:0;
+            display:none;
+            align-items:center;
+            justify-content:center;
+            background:rgba(2, 8, 16, 0.6);
+            backdrop-filter:blur(4px);
+            z-index:9999;
+        }
+        .loading-overlay.show{ display:flex; }
+
+        .loading-card{
+            min-width:220px;
+            background: linear-gradient(180deg, rgba(14, 31, 51, 0.98), rgba(8, 20, 35, 0.98));
+            border: 1px solid rgba(0, 247, 255, 0.2);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            color: var(--text-main);
+            box-shadow: var(--shadow-card);
+        }
+
+        .spinner{
+            width:46px;
+            height:46px;
+            margin:0 auto 12px;
+            border:4px solid rgba(0, 247, 255, 0.12);
+            border-top-color: var(--neon-cyan);
+            border-radius:50%;
+            animation: spin .9s linear infinite;
+        }
+        @keyframes spin{ to{ transform: rotate(360deg); } }
+
+        @media (max-width:768px){
+            body{ padding:14px; }
+            .question-container.question-theme-neon{ padding:18px; border-radius:16px; }
+            .question-text-card,.question-image-card,.answer-panel{ padding:16px; }
+            .form-actions{ flex-direction:column; }
+            .form-actions .btn{ width:100%; }
+            #question-image{ max-height:240px; }
+        }
+    </style>
+</head>
+
+<body>
+<div class="page-shell">
+    <div class="question-container question-theme-neon"
+         data-question-id="{{ question.id }}"
+         data-order="{{ question.order }}">
+
+        <div class="question-header">
+            <div class="question-meta-right">
+                <span class="badge-question">✅ سوال تستی</span>
+                <span class="meta-divider"></span>
+                <span class="question-number">سوال {{ question.order }}</span>
+                <span class="meta-divider"></span>
+                <span class="score">نمره: {{ question.score }}</span>
+            </div>
         </div>
-    </form>
-    
+
+        <div class="question-body">
+            <div class="question-text-card">
+                <div class="section-title">متن سوال</div>
+                <div class="question-text">
+                    {{ question.text|safe }}
+                </div>
+            </div>
+
+            {% if question.image %}
+                <div class="question-image-card">
+                    <div class="section-title">تصویر سوال</div>
+                    <div class="question-image">
+                        <img src="{{ question.image }}" alt="تصویر سوال" id="question-image">
+                    </div>
+                </div>
+            {% endif %}
+
+            <form id="answer-form" action="{% url 'Answers:save_answer_m' question.id %}" method="post">
+                {% csrf_token %}
+
+                <div class="answer-panel">
+                    <div class="section-title">گزینه‌ها</div>
+
+                    <div class="options-grid">
+                        {% for option in options %}
+                            <div class="option-card">
+                                <input
+                                    class="option-input"
+                                    type="radio"
+                                    name="selected_option"
+                                    id="option-{{ option.id }}"
+                                    value="{{ option.id }}"
+                                    {% if selected_answer and selected_answer.OptionID_id == option.id %}checked{% endif %}
+                                >
+                                <label class="option-label" for="option-{{ option.id }}">
+                                    <span class="option-marker">{{ forloop.counter }}</span>
+                                    <span class="option-text">{{ option.Text|default:option.text }}</span>
+                                </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div id="message-box" class="message-box"></div>
+                </div>
+
+                <div class="form-actions">
+                    {% if not first_question %}
+                        <button type="button" class="btn btn-secondary" id="pre-question">سوال قبلی</button>
+                    {% endif %}
+
+                    <button type="button" class="btn btn-success" id="save-answer">ثبت پاسخ</button>
+
+                    <button type="button" class="btn btn-primary" id="clear-answer">حذف انتخاب</button>
+
+                    {% if not last_question %}
+                        <button type="button" class="btn btn-secondary" id="next-question">سوال بعدی</button>
+                    {% endif %}
+
+                    <button type="button" class="btn btn-warning" id="end-exam">پایان آزمون</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
+
+<div id="loading-overlay" class="loading-overlay">
+    <div class="loading-card">
+        <div class="spinner"></div>
+        <div>در حال پردازش...</div>
+    </div>
+</div>
+
+<script>
+    function getCSRFToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) return meta.getAttribute('content');
+
+        const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfInput) return csrfInput.value;
+
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='));
+
+        return cookieValue ? cookieValue.split('=')[1] : '';
+    }
+
+    function showLoading() {
+        document.getElementById('loading-overlay')?.classList.add('show');
+    }
+
+    function hideLoading() {
+        document.getElementById('loading-overlay')?.classList.remove('show');
+    }
+
+    function showMessage(message, type = 'success') {
+        const box = document.getElementById('message-box');
+        if (!box) return;
+
+        box.className = 'message-box show';
+        box.classList.add(type === 'success' ? 'message-success' : 'message-error');
+        box.textContent = message;
+
+        setTimeout(() => box.classList.remove('show'), 2500);
+    }
+
+    function getCurrentQuestionOrder() {
+        const container = document.querySelector('.question-container');
+        if (!container) return null;
+        const order = parseInt(container.dataset.order, 10);
+        return isNaN(order) ? null : order;
+    }
+
+    function disableActionBtns() {
+        document.querySelectorAll('.btn').forEach(btn => btn.disabled = true);
+    }
+
+    function enableActionBtns() {
+        document.querySelectorAll('.btn').forEach(btn => btn.disabled = false);
+    }
+
+    async function updateQuestionForm(data) {
+        if (!data || !data.html) {
+            showMessage('پاسخ سرور معتبر نیست.', 'error');
+            return;
+        }
+
+        const shell = document.querySelector('.page-shell');
+        if (!shell) return;
+
+        shell.innerHTML = data.html;
+        bindQuestionActions();
+    }
+
+    async function saveAnswer() {
+        const form = document.getElementById('answer-form');
+        if (!form) {
+            showMessage('فرم پاسخ پیدا نشد.', 'error');
+            return;
+        }
+
+        const formData = new FormData(form);
+
+        try {
+            disableActionBtns();
+            showLoading();
+
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCSRFToken() },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                showMessage(data.message || 'پاسخ ثبت شد.', 'success');
+            } else {
+                showMessage(data.error || data.message || 'ثبت پاسخ ناموفق بود.', 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            showMessage('خطا در ارتباط با سرور.', 'error');
+        } finally {
+            enableActionBtns();
+            hideLoading();
+        }
+    }
+
+    async function clearAnswer() {
+        const checked = document.querySelector('input[name="selected_option"]:checked');
+        if (checked) checked.checked = false;
+        showMessage('انتخاب پاک شد. برای ثبت، دکمه ثبت پاسخ را بزنید.', 'success');
+    }
+
+    async function nextQuestion() {
+        const currentOrder = getCurrentQuestionOrder();
+        if (currentOrder === null) {
+            showMessage('ترتیب سوال مشخص نیست.', 'error');
+            return;
+        }
+
+        try {
+            disableActionBtns();
+            showLoading();
+
+            const response = await fetch('/next-question/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ order: currentOrder })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                await updateQuestionForm(data);
+            } else {
+                showMessage(data.error || 'رفتن به سوال بعدی ممکن نیست.', 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            showMessage('خطا در دریافت سوال بعدی.', 'error');
+        } finally {
+            enableActionBtns();
+            hideLoading();
+        }
+    }
+
+    async function preQuestion() {
+        const currentOrder = getCurrentQuestionOrder();
+        if (currentOrder === null) {
+            showMessage('ترتیب سوال مشخص نیست.', 'error');
+            return;
+        }
+
+        try {
+            disableActionBtns();
+            showLoading();
+
+            const response = await fetch('/pre-question/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ order: currentOrder })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                await updateQuestionForm(data);
+            } else {
+                showMessage(data.error || 'رفتن به سوال قبلی ممکن نیست.', 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            showMessage('خطا در دریافت سوال قبلی.', 'error');
+        } finally {
+            enableActionBtns();
+            hideLoading();
+        }
+    }
+
+    async function endExam() {
+        const ok = confirm('آیا از پایان آزمون مطمئن هستید؟');
+        if (!ok) return;
+
+        try {
+            disableActionBtns();
+            showLoading();
+
+            const response = await fetch('/end-exam/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken()
+                },
+                body: JSON.stringify({ order: getCurrentQuestionOrder() })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    showMessage(data.message || 'آزمون پایان یافت.', 'success');
+                }
+            } else {
+                showMessage(data.error || data.message || 'پایان آزمون ناموفق بود.', 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            showMessage('خطا در پایان آزمون.', 'error');
+        } finally {
+            enableActionBtns();
+            hideLoading();
+        }
+    }
+
+    function bindQuestionActions() {
+        document.getElementById('save-answer')?.addEventListener('click', saveAnswer);
+        document.getElementById('clear-answer')?.addEventListener('click', clearAnswer);
+        document.getElementById('next-question')?.addEventListener('click', nextQuestion);
+        document.getElementById('pre-question')?.addEventListener('click', preQuestion);
+        document.getElementById('end-exam')?.addEventListener('click', endExam);
+    }
+
+    document.addEventListener('DOMContentLoaded', bindQuestionActions);
+</script>
+
+</body>
+</html>

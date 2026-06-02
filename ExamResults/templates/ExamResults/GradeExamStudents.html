@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نمره‌دهی آزمون</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --bg-2: #111833;
+            --card: rgba(17, 24, 51, 0.78);
+            --card-border: rgba(120, 119, 198, 0.25);
+            --text: #e8ecff;
+            --muted: #9aa4d6;
+            --accent: #7c5cff;
+            --accent-2: #00d4ff;
+            --success: #2de38a;
+            --danger: #ff5c8a;
+            --warning: #ffcb6b;
+            --line: rgba(255,255,255,0.08);
+            --shadow: 0 20px 60px rgba(0,0,0,0.45);
+            --glow: 0 0 20px rgba(124, 92, 255, 0.35), 0 0 40px rgba(0, 212, 255, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Tahoma, Arial, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(124, 92, 255, 0.18), transparent 30%),
+                radial-gradient(circle at top right, rgba(0, 212, 255, 0.12), transparent 28%),
+                radial-gradient(circle at bottom, rgba(45, 227, 138, 0.08), transparent 25%),
+                linear-gradient(180deg, #080b16 0%, var(--bg) 45%, #070a12 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 32px 18px;
+        }
+
+        .page {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            padding: 28px;
+            border: 1px solid var(--card-border);
+            background: linear-gradient(135deg, rgba(17, 24, 51, 0.9), rgba(10, 14, 30, 0.8));
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+            transform: translateX(-100%);
+            animation: shine 7s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .title {
+            margin: 0 0 10px;
+            font-size: clamp(26px, 4vw, 38px);
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: #f4f7ff;
+            text-shadow: 0 0 18px rgba(124, 92, 255, 0.35);
+        }
+
+        .subtitle {
+            margin: 0;
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-top: 22px;
+        }
+
+        .stat-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+            padding: 16px 18px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .messages {
+            margin: 18px 0 0;
+            display: grid;
+            gap: 10px;
+        }
+
+        .message {
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
+            color: var(--text);
+        }
+
+        .message.success {
+            border-color: rgba(45, 227, 138, 0.35);
+            box-shadow: 0 0 22px rgba(45, 227, 138, 0.12);
+        }
+
+        .message.error {
+            border-color: rgba(255, 92, 138, 0.35);
+            box-shadow: 0 0 22px rgba(255, 92, 138, 0.12);
+        }
+
+        .table-wrap {
+            margin-top: 24px;
+            overflow: hidden;
+            border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(13, 17, 34, 0.85);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+        }
+
+        .table-head {
+            padding: 18px 22px;
+            background: linear-gradient(90deg, rgba(124, 92, 255, 0.16), rgba(0, 212, 255, 0.08));
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .table-head h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 920px;
+        }
+
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: rgba(10, 14, 30, 0.98);
+            color: #dce3ff;
+            text-align: center;
+            padding: 16px 14px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--line);
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 16px 14px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            color: #eef2ff;
+            vertical-align: middle;
+        }
+
+        tbody tr {
+            transition: 0.25s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(124, 92, 255, 0.07);
+        }
+
+        .student-name {
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 74px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            border: 1px solid transparent;
+        }
+
+        .badge.pass {
+            color: #0bd67d;
+            background: rgba(45, 227, 138, 0.1);
+            border-color: rgba(45, 227, 138, 0.25);
+        }
+
+        .badge.fail {
+            color: #ff6b93;
+            background: rgba(255, 92, 138, 0.1);
+            border-color: rgba(255, 92, 138, 0.25);
+        }
+
+        .grade {
+            font-weight: 900;
+            font-size: 16px;
+            letter-spacing: 1px;
+            color: #ffd36e;
+            text-shadow: 0 0 14px rgba(255, 203, 107, 0.15);
+        }
+
+        .score-input {
+            width: 130px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(124, 92, 255, 0.35);
+            background: rgba(255,255,255,0.04);
+            color: #fff;
+            outline: none;
+            text-align: center;
+            transition: 0.25s ease;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+        }
+
+        .score-input:focus {
+            border-color: rgba(0, 212, 255, 0.75);
+            box-shadow: 0 0 0 4px rgba(0, 212, 255, 0.12), var(--glow);
+        }
+
+        .btn {
+            appearance: none;
+            border: none;
+            cursor: pointer;
+            padding: 12px 18px;
+            border-radius: 14px;
+            font-weight: 800;
+            color: #fff;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            box-shadow: 0 12px 30px rgba(124, 92, 255, 0.25), 0 0 18px rgba(0, 212, 255, 0.12);
+            transition: 0.25s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 34px rgba(124, 92, 255, 0.33), 0 0 24px rgba(0, 212, 255, 0.16);
+        }
+
+        .empty-row {
+            padding: 32px 16px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 18px 12px;
+            }
+
+            .hero {
+                padding: 22px 18px;
+                border-radius: 20px;
+            }
+
+            .table-wrap {
+                border-radius: 20px;
+            }
+
+            .score-input {
+                width: 110px;
+            }
+
+            .btn {
+                padding: 11px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <section class="hero">
+            <h2 class="title">نمره‌دهی آزمون: {{ exam.Title }}</h2>
+            
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-label">نمره کل آزمون</div>
+                    <div class="stat-value">{{ exam.TotalScore }}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">تعداد دانشجوها</div>
+                    <div class="stat-value">{{ students|length }}</div>
+                </div>
+            </div>
+
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message {% if 'موفق' in message.tags %}success{% else %}error{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="table-wrap">
+            <div class="table-head">
+                <h3>لیست دانشجویان و ثبت نمره</h3>
+            </div>
+
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>نام دانشجو</th>
+                            <th>شماره دانشجویی</th>
+                            <th>نمره فعلی</th>
+                            <th>وضعیت</th>
+                            <th>گرید</th>
+                            <th>ثبت نمره</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in students %}
+                        <tr>
+                            <td class="student-name">{{ item.student.UserKey.FirstName }} {{ item.student.UserKey.LastName }}</td>
+                            <td class="muted">{{ item.student.StudentNumber }}</td>
+                            <td>
+                                {% if item.result %}
+                                    {{ item.result.TotalScore }}
+                                {% else %}
+                                    <span class="muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.result %}
+                                    {% if item.result.Status %}
+                                        <span class="badge pass">قبول</span>
+                                    {% else %}
+                                        <span class="badge fail">مردود</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.result %}
+                                    <span class="grade">{{ item.result.Grade }}</span>
+                                {% else %}
+                                    <span class="muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="post" style="display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="student_id" value="{{ item.student.pk }}">
+                                    <input
+                                        type="number"
+                                        name="score"
+                                        step="0.01"
+                                        min="0"
+                                        max="{{ exam.TotalScore }}"
+                                        required
+                                        class="score-input"
+                                        placeholder="نمره"
+                                    >
+                                    <button type="submit" class="btn">ثبت</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="empty-row">
+                                هیچ دانشجویی برای این آزمون پیدا نشد.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

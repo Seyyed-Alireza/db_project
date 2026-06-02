@@ -1,20 +1,394 @@
 {% load static %}
 
-<div class="question-container" data-question-id="{{ question.QuestionID }}" data-order="{{ question.Order }}">
+<style>
+    :root {
+        --bg-main: #07111f;
+        --bg-card: rgba(10, 22, 38, 0.88);
+        --bg-card-2: rgba(13, 29, 48, 0.92);
+        --border: rgba(0, 255, 255, 0.22);
+        --border-strong: rgba(0, 255, 255, 0.55);
+
+        --text-main: #eaf7ff;
+        --text-soft: #a9c6d8;
+        --text-dim: #7c9bb0;
+
+        --neon-cyan: #00f7ff;
+        --neon-blue: #3aa0ff;
+        --neon-purple: #8b5cf6;
+        --neon-green: #00ffb3;
+        --neon-red: #ff4d6d;
+
+        --shadow-neon: 0 0 12px rgba(0, 247, 255, 0.22), 0 0 28px rgba(58, 160, 255, 0.14);
+        --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.35);
+        --radius-lg: 20px;
+        --radius-md: 14px;
+        --radius-sm: 10px;
+    }
+
+    .question-container.question-theme-neon {
+        width: 100%;
+        background:
+            radial-gradient(circle at top right, rgba(0, 247, 255, 0.08), transparent 22%),
+            radial-gradient(circle at top left, rgba(139, 92, 246, 0.10), transparent 25%),
+            linear-gradient(135deg, #040b16 0%, #07111f 55%, #081827 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        color: var(--text-main);
+        box-shadow: var(--shadow-card);
+        position: relative;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    .question-container.question-theme-neon::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: var(--radius-lg);
+        padding: 1px;
+        background: linear-gradient(
+            135deg,
+            rgba(0, 247, 255, 0.55),
+            rgba(58, 160, 255, 0.18),
+            rgba(139, 92, 246, 0.45)
+        );
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+    }
+
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 22px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(0, 247, 255, 0.14);
+        position: relative;
+        z-index: 1;
+    }
+
+    .question-meta-right {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .badge-question {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        background: linear-gradient(135deg, rgba(0, 255, 179, 0.18), rgba(0, 247, 255, 0.14));
+        border: 1px solid rgba(0, 255, 179, 0.35);
+        color: #d8fff4;
+        border-radius: 999px;
+        font-size: 0.95rem;
+        font-weight: 700;
+        box-shadow: 0 0 15px rgba(0, 255, 179, 0.1);
+    }
+
+    .meta-divider {
+        width: 6px;
+        height: 6px;
+        background: var(--neon-cyan);
+        border-radius: 50%;
+        box-shadow: 0 0 10px var(--neon-cyan);
+    }
+
+    .question-number,
+    .score {
+        color: var(--text-soft);
+        font-weight: 600;
+        font-size: 0.96rem;
+    }
+
+    .question-body {
+        display: grid;
+        gap: 20px;
+        margin-bottom: 24px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .question-text-card,
+    .question-image-card,
+    .answer-panel {
+        background: linear-gradient(180deg, rgba(14, 31, 51, 0.9), rgba(8, 20, 35, 0.95));
+        border: 1px solid rgba(0, 247, 255, 0.14);
+        border-radius: var(--radius-md);
+        padding: 20px;
+        box-shadow: var(--shadow-neon);
+    }
+
+    .section-title {
+        display: inline-block;
+        margin-bottom: 14px;
+        font-size: 0.92rem;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        color: var(--neon-cyan);
+        text-shadow: 0 0 10px rgba(0, 247, 255, 0.25);
+    }
+
+    .question-text {
+        line-height: 2;
+        font-size: 1rem;
+        color: var(--text-main);
+        word-break: break-word;
+    }
+
+    .question-image {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 8px;
+    }
+
+    #question-image {
+        max-width: 100%;
+        width: auto;
+        max-height: 320px;
+        object-fit: contain;
+        border-radius: 14px;
+        border: 1px solid rgba(58, 160, 255, 0.35);
+        box-shadow: 0 0 24px rgba(58, 160, 255, 0.16);
+        background: #02060c;
+        padding: 6px;
+    }
+
+    .answer-form {
+        width: 100%;
+        position: relative;
+        z-index: 1;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 10px;
+        color: var(--text-soft);
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+
+    .form-group textarea,
+    .form-group input[type="text"],
+    .form-group input[type="file"],
+    .form-group select {
+        width: 100%;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 247, 255, 0.18);
+        background: rgba(5, 13, 24, 0.92);
+        color: var(--text-main);
+        padding: 14px 16px;
+        transition: all 0.25s ease;
+        outline: none;
+        box-sizing: border-box;
+    }
+
+    .form-group textarea {
+        min-height: 180px;
+        resize: vertical;
+        line-height: 1.9;
+    }
+
+    .form-group textarea:focus,
+    .form-group input[type="text"]:focus,
+    .form-group input[type="file"]:focus,
+    .form-group select:focus {
+        border-color: var(--neon-cyan);
+        box-shadow: 0 0 0 4px rgba(0, 247, 255, 0.08), 0 0 18px rgba(0, 247, 255, 0.16);
+        background: rgba(7, 17, 31, 1);
+    }
+
+    .help-text {
+        display: block;
+        margin-top: 8px;
+        color: var(--text-dim);
+        font-size: 0.84rem;
+    }
+
+    .form-errors {
+        margin-top: 8px;
+        color: #ff9db0;
+        font-size: 0.88rem;
+    }
+
+    .form-errors ul {
+        margin: 0;
+        padding-right: 18px;
+    }
+
+    .existing-file {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+        padding: 14px 16px;
+        background: rgba(0, 247, 255, 0.06);
+        border: 1px solid rgba(0, 247, 255, 0.14);
+        border-radius: 12px;
+    }
+
+    .file-badge {
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(58, 160, 255, 0.18);
+        color: #dff3ff;
+        font-size: 0.85rem;
+        font-weight: 700;
+        border: 1px solid rgba(58, 160, 255, 0.28);
+    }
+
+    .file-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .file-name {
+        color: var(--text-main);
+        font-weight: 700;
+    }
+
+    .file-note {
+        color: var(--text-dim);
+    }
+
+    .form-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 22px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn {
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-weight: 800;
+        font-size: 0.95rem;
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+        letter-spacing: 0.2px;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+    }
+
+    .btn-primary {
+        color: #04111b;
+        background: linear-gradient(135deg, var(--neon-cyan), #7df9ff);
+        box-shadow: 0 0 18px rgba(0, 247, 255, 0.3);
+    }
+
+    .btn-primary:hover {
+        box-shadow: 0 0 24px rgba(0, 247, 255, 0.42);
+    }
+
+    .btn-secondary {
+        color: var(--text-main);
+        background: linear-gradient(135deg, rgba(58, 160, 255, 0.16), rgba(139, 92, 246, 0.18));
+        border: 1px solid rgba(58, 160, 255, 0.28);
+    }
+
+    .btn-secondary:hover {
+        box-shadow: 0 0 20px rgba(58, 160, 255, 0.18);
+    }
+
+    .btn-danger {
+        color: #fff0f3;
+        background: linear-gradient(135deg, rgba(255, 77, 109, 0.9), rgba(255, 77, 109, 0.72));
+        box-shadow: 0 0 18px rgba(255, 77, 109, 0.22);
+    }
+
+    .btn-danger:hover {
+        box-shadow: 0 0 26px rgba(255, 77, 109, 0.32);
+    }
+
+    #question-box {
+        width: 100%;
+    }
+
+    @media (max-width: 768px) {
+        .question-container.question-theme-neon {
+            padding: 18px;
+            border-radius: 16px;
+        }
+
+        .question-header {
+            align-items: flex-start;
+        }
+
+        .question-meta-right {
+            gap: 8px;
+        }
+
+        .question-text-card,
+        .question-image-card,
+        .answer-panel {
+            padding: 16px;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .form-actions .btn {
+            width: 100%;
+        }
+
+        #question-image {
+            max-height: 240px;
+        }
+    }
+</style>
+
+<div class="question-container question-theme-neon" data-question-id="{{ question.id }}" data-order="{{ question.order }}">
+    
     <div class="question-header">
-        <span class="badge badge-success">✍️ سوال تشریحی</span><span>|</span>
-        <span class="question-number">سوال {{ question.order }}</span><span>|</span>
-        <span class="score">نمره سوال: {{ question.score }}</span>
+        <div class="question-meta-right">
+            <span class="badge-question">✍️ سوال تشریحی</span>
+            <span class="meta-divider"></span>
+            <span class="question-number">سوال {{ question.order }}</span>
+            <span class="meta-divider"></span>
+            <span class="score">نمره: {{ question.score }}</span>
+        </div>
     </div>
     
     <div class="question-body">
-        <div class="question-text">
-            {{ question.text|safe }}
+        <div class="question-text-card">
+            <div class="section-title">متن سوال</div>
+            <div class="question-text">
+                {{ question.text|safe }}
+            </div>
         </div>
         
         {% if question.image %}
-            <div class="question-image">
-                <img src="{{ question.image }}" alt="تصویر سوال" id="question-image">
+            <div class="question-image-card">
+                <div class="section-title">تصویر سوال</div>
+                <div class="question-image">
+                    <img src="{{ question.image }}" alt="تصویر سوال" id="question-image">
+                </div>
             </div>
         {% endif %}
     </div>
@@ -22,46 +396,57 @@
     <form id="answer-form" action="{% url 'Answers:save_answer_d' question.id %}" class="answer-form" data-question-type="descriptive" enctype="multipart/form-data" novalidate autocomplete="off">
         {% csrf_token %}
         
-        <div class="form-group">
-            {{ form.answer_text.label_tag }}
-            {{ form.answer_text }}
-            {{ form.answer_text.errors }}
-        </div>
-        
-        {% if existing_file %}
-            <div class="existing-file">
-                📎 فایل قبلی: 
-                <!-- <a href="{{ existing_file.url }}" target="_blank">
-                    {{ existing_file.name }}
-                </a> -->
-                <small>{{ existing_file.name }}</small>
-                <small>(می‌توانید فایل جدید آپلود کنید)</small>
-            </div>
-        {% endif %}
+        <div class="answer-panel">
+            <div class="section-title">پاسخ شما</div>
 
-        <div class="form-group">
-            {{ form.answer_file.label_tag }}
-            {{ form.answer_file }}
-            <small>{{ form.answer_file.help_text }}</small>
-            {{ form.answer_file.errors }}
+            <div class="form-group">
+                {{ form.answer_text.label_tag }}
+                {{ form.answer_text }}
+                <div class="form-errors">
+                    {{ form.answer_text.errors }}
+                </div>
+            </div>
+            
+            {% if existing_file %}
+                <div class="existing-file">
+                    <div class="file-badge">📎 فایل قبلی</div>
+                    <div class="file-info">
+                        <small class="file-name">{{ existing_file.name }}</small>
+                        <small class="file-note">می‌توانید فایل جدید آپلود کنید</small>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                {{ form.answer_file.label_tag }}
+                {{ form.answer_file }}
+                {% if form.answer_file.help_text %}
+                    <small class="help-text">{{ form.answer_file.help_text }}</small>
+                {% endif %}
+                <div class="form-errors">
+                    {{ form.answer_file.errors }}
+                </div>
+            </div>
         </div>
         
         <div class="form-actions">
             {% if not first_question %}
-                <button type="button" class="btn" id="pre-question">
+                <button type="button" class="btn btn-secondary" id="pre-question">
                     سوال قبلی
                 </button>
             {% endif %}
-            <button type="button" class="btn" id="save-answer">
+
+            <button type="button" class="btn btn-primary" id="save-answer">
                 ذخیره پاسخ
             </button>
             
             {% if not last_question %}
-                <button type="button" class="btn" id="next-question">
+                <button type="button" class="btn btn-secondary" id="next-question">
                     سوال بعدی
                 </button>
             {% endif %}
-            <button type="button" class="btn" id="end-exam">
+
+            <button type="button" class="btn btn-danger" id="end-exam">
                 پایان آزمون
             </button>
         </div>

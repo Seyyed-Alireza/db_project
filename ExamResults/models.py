@@ -1,7 +1,7 @@
 from django.db import models
 from Exams.models import Exam
 from Students.models import Student
-
+from decimal import Decimal
 class ExamResult(models.Model):
     # ResultID = models.AutoField(primary_key=True, verbose_name="شناسه نتیجه")
 
@@ -19,7 +19,12 @@ class ExamResult(models.Model):
         verbose_name="شناسه دانشجو"
     )
 
-    TotalScore = models.PositiveSmallIntegerField(blank=True, null=True, verbose_name="نمره کسب شده")
+    TotalScore = models.DecimalField(
+    max_digits=5,
+    decimal_places=2,
+    default=Decimal("0.00"),
+    verbose_name="نمره کل"
+    )
 
     Status = models.BooleanField(default=True, verbose_name="وضعیت قبولی")
 

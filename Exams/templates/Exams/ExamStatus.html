@@ -118,6 +118,13 @@
             letter-spacing: 1px;
         }
 
+        .top-actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
         
         @media (max-width: 768px) {
             .status-header { display: none; }
@@ -131,6 +138,12 @@
     <div class="dashboard-container">
         <div class="header-section">
             <h1>وضعیت هوشمند شرکت در آزمون</h1>
+
+            <div class="top-actions">
+                <a href="{% url 'ExamResults:grade_exam_students' request.resolver_match.kwargs.exam_id %}" class="btn-glass">
+                    نمره‌دهی دانشجویان
+                </a>
+            </div>
         </div>
 
         
