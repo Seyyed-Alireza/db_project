@@ -358,6 +358,73 @@
             .form-actions .btn{ width:100%; }
             #question-image{ max-height:240px; }
         }
+
+
+
+
+
+
+        /* grid برای گزینه‌ها */
+.option-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    cursor: pointer;
+    padding: 14px;
+
+    border-radius: 12px;
+    border: 2px solid transparent;
+
+    background: rgba(20, 20, 30, 0.85);
+    color: #ddd;
+
+    transition: all 0.25s ease;
+    position: relative;
+}
+
+/* مخفی کردن رادیو */
+.option-card input[type="radio"] {
+    display: none;
+}
+
+/* hover */
+.option-card:hover {
+    border-color: #00f0ff;
+    box-shadow: 0 0 8px #00f0ff55;
+}
+
+/* وقتی انتخاب شده */
+.option-card:has(input:checked) {
+    border-color: #9b5cff;
+    box-shadow: 0 0 12px #9b5cff, 0 0 25px #9b5cff55;
+    background: rgba(30, 10, 50, 0.9);
+    color: #fff;
+}
+
+/* دایره کنار گزینه */
+.option-card::before {
+    content: "";
+    width: 16px;
+    height: 16px;
+
+    border-radius: 50%;
+    border: 2px solid #666;
+
+    flex-shrink: 0;
+}
+
+/* وقتی انتخاب شده */
+.option-card:has(input:checked)::before {
+    background: #9b5cff;
+    border-color: #9b5cff;
+    box-shadow: 0 0 8px #9b5cff;
+}
+
+/* متن گزینه */
+.option-text {
+    font-size: 14px;
+}
     </style>
 </head>
 
@@ -401,7 +468,13 @@
                     <div class="section-title">گزینه‌ها</div>
 
                     <div class="options-grid">
-                        {{ form.selected_option_key }}
+                        {% for radio in form.selected_option_key %}
+    <label class="option-card">
+        {{ radio.tag }}
+        <span class="option-text">{{ radio.choice_label }}</span>
+    </label>
+{% endfor %}
+                        <!-- {{ form.selected_option_key }} -->
                         <!-- {% for option in options %}
                             <div class="option-card">
                                 <input
