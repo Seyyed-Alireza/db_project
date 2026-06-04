@@ -181,6 +181,7 @@ function updateQuestionForm(data) {
     if (data.success) {
         container = document.getElementById('container');
         container.innerHTML = data.html;
+        console.log(data.html)
         const exit_button = document.getElementById('end-exam');
         if (exit_button) {
             exit_button.addEventListener('click', exitExam);
@@ -429,3 +430,39 @@ document.addEventListener('copy', copyPasteHandler('copy'));
 document.addEventListener('paste', copyPasteHandler('paste'));
 document.addEventListener('cut', copyPasteHandler('cut'));
 
+
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const timeElement = document.getElementById("time-data");
+    let totalSeconds = parseInt(timeElement.dataset.time);
+
+    function formatTime(seconds) {
+        let hours = Math.floor(seconds / 3600);
+        let minutes = Math.floor((seconds % 3600) / 60);
+        let secs = seconds % 60;
+
+        return (
+            String(hours).padStart(2, '0') + ':' +
+            String(minutes).padStart(2, '0') + ':' +
+            String(secs).padStart(2, '0')
+        );
+    }
+
+    function updateTimer() {
+        if (totalSeconds <= 0) {
+            clearInterval(timerInterval);
+            return;
+        }
+
+        totalSeconds--;
+        timeElement.innerText = formatTime(totalSeconds);
+    }
+
+    // نمایش اولیه
+    timeElement.innerText = formatTime(totalSeconds);
+
+    // شروع تایمر
+    const timerInterval = setInterval(updateTimer, 1000);
+
+});

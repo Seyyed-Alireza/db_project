@@ -106,7 +106,7 @@ def get_question(request, q):
             if row:
                 initial['selected_option_key'] = row[0]
         form = MultipleChoiceAnswerForm(question=q, initial=initial)
-        print(form)
+
         template_partial = 'Questions/mcq_question.html'
     last_log = QuestionViewLog.objects.filter(
         SessionKey=request.session.get('exam_session_id'),

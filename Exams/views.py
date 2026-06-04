@@ -362,10 +362,13 @@ def question_page(request, exam_id, course_id):
     else:
         return redirect('Courses:course_page', course_id)
     question = Question.objects.filter(ExamKey_id=exam_id)
+    time = (get_time_now() - Exam.objects.filter(ExamID=exam_id).first().StartTime).seconds
+    print(time)
     request.session['question_order'] = 1
     context = {
         'last_page': True,
         'question': question,
+        'time': time,
     }
     response = render(request, 'Exams/QuestionView.html', context)
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate'

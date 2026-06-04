@@ -401,7 +401,8 @@
                     <div class="section-title">گزینه‌ها</div>
 
                     <div class="options-grid">
-                        {% for option in options %}
+                        {{ form.selected_option_key }}
+                        <!-- {% for option in options %}
                             <div class="option-card">
                                 <input
                                     class="option-input"
@@ -416,7 +417,7 @@
                                     <span class="option-text">{{ option.Text|default:option.text }}</span>
                                 </label>
                             </div>
-                        {% endfor %}
+                        {% endfor %} -->
                     </div>
 
                     <div id="message-box" class="message-box"></div>
